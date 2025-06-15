@@ -192,3 +192,67 @@ cython_debug/
 #  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
 .cursorindexingignore
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+.env/
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# API Keys and Secrets (CRITICAL)
+config.py
+secrets.py
+*.key
+*.pem
+api_keys.txt
+credentials.json
+
+# Trading Bot Specific
+trading_logs/
+backtest_results/
+performance_data/
+trade_history.db
+*.db
+*.sqlite
+*.sqlite3
+
+# Data files
+data/
+historical_data/
+*.csv
+*.json
+market_data/
+
+# Logs
+logs/
+*.log
+*.out
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp

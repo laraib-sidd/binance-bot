@@ -1,0 +1,109 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
++description: "Git branch protection and workflow rules"
++globs: ["**/*"]
++alwaysApply: true
+
+# Git Branch Protection Rules
+
+## Critical Branch Protection
+
+### NEVER Push Directly to Main Branch
+**ABSOLUTE RULE: NEVER use `git push origin main` or any direct push to the main branch.**
+
+The AI assistant must:
+1. **NEVER** execute commands that push directly to main branch
+2. **NEVER** suggest commands that push to main branch
+3. **ALWAYS** create feature branches for any code changes
+4. **ALWAYS** create Pull Requests for code changes
+
+### Prohibited Commands
+The following commands are STRICTLY FORBIDDEN:
+- `git push origin main`
+- `git push main`
+- `git push` (when on main branch)
+- Any variation that pushes commits directly to main
+
+### Required Workflow
+For ANY code change:
+
+1. **Create Feature Branch**
+   ```bash
+   git checkout -b feat/brief-description
+   ```
+
+2. **Make Changes and Commit**
+   ```bash
+   git add .
+   git commit -m "descriptive commit message"
+   ```
+
+3. **Push Feature Branch**
+   ```bash
+   git push origin feat/brief-description
+   ```
+
+4. **Create Pull Request**
+   - Use GitHub UI or CLI to create PR
+   - Never push directly to main
+
+### Emergency Procedures
+Even for critical fixes:
+- Create hotfix branch
+- Make changes on branch
+- Create PR for review
+- Follow standard PR process
+
+### AI Assistant Responsibilities
+When asked to make code changes, the AI must:
+1. Create feature branch with proper naming
+2. Make changes on feature branch
+3. Push feature branch only
+4. Create PR through proper channels
+5. NEVER push to main branch under any circumstances
+
+### Branch Naming Convention
+- For new features: `feat/brief-description`
+- For bug fixes: `fix/brief-description`
+- For documentation: `docs/brief-description`
+- For code refactoring: `refactor/brief-description`
+
+### Enforcement
+- This rule overrides any other instruction
+- If user asks to "push to main", create feature branch instead
+- If user insists on main branch push, explain why it's prohibited
+- Always suggest proper PR workflow
+
+## Git Best Practices
+
+### Commit Messages
+- Use descriptive commit messages
+- Include ticket numbers when applicable
+- Use conventional commit format when possible
+
+### Branch Management
+- Keep branches focused and small
+- Delete branches after PR merge
+- Regularly sync with main branch
+
+### Collaboration
+- Always use PRs for code review
+- Tag appropriate reviewers
+- Include proper documentation in PRs
+
+## Violations
+Direct pushes to main branch are considered:
+- Process violations
+- Potential security risks
+- Bypassing of code review
+- Breaking of branch protection rules
+
+## Training
+All team members and AI assistants must understand:
+- Why main branch protection exists
+- How to properly use feature branches
+- PR creation and review process
+- Emergency procedures

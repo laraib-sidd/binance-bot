@@ -1,0 +1,429 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Testing and Quality Visualization
+
+## Overview
+Comprehensive testing and quality tracking ensures system reliability as it grows. Every change should include thorough testing documentation and quality impact analysis.
+
+## Testing Strategy Visualization
+
+### Test Pyramid for API Platform
+```mermaid
+graph TD
+    subgraph "Test Pyramid"
+        A[End-to-End Tests<br/>Integration & UI<br/>Slow & Expensive<br/>10%]
+        B[Integration Tests<br/>API & Service Tests<br/>Medium Speed<br/>20%]
+        C[Unit Tests<br/>Function & Component Tests<br/>Fast & Reliable<br/>70%]
+    end
+    
+    subgraph "Test Types"
+        D[Manual Testing<br/>Exploratory Testing<br/>User Acceptance]
+        E[Contract Testing<br/>API Compatibility<br/>Schema Validation]
+        F[Performance Testing<br/>Load & Stress<br/>Scalability]
+    end
+    
+    A --> D
+    B --> E
+    C --> F
+    
+    style A fill:#ffcccc
+    style B fill:#ffffcc
+    style C fill:#ccffcc
+```
+
+### Test Coverage Mapping
+```mermaid
+graph TB
+    subgraph "Code Coverage"
+        A[API Endpoints] --> A1[100% Unit Tests]
+        A --> A2[90% Integration Tests]
+        A --> A3[50% E2E Tests]
+        
+        B[Business Logic] --> B1[95% Unit Tests]
+        B --> B2[80% Integration Tests]
+        B --> B3[30% E2E Tests]
+        
+        C[Error Handling] --> C1[90% Unit Tests]
+        C --> C2[70% Integration Tests]
+        C --> C3[60% E2E Tests]
+    end
+    
+    subgraph "Quality Gates"
+        D[Minimum 80% Overall]
+        E[Critical Paths 100%]
+        F[New Code 95%]
+    end
+    
+    style A1 fill:#ccffcc
+    style B1 fill:#ccffcc
+    style C3 fill:#ffffcc
+```
+
+## Test Documentation Requirements
+
+### Test Case Documentation
+```markdown
+## Test Case: API Authentication
+
+### Test ID: AUTH-001
+**Description**: Verify API authentication with valid token
+**Priority**: High
+**Type**: Integration Test
+
+### Test Flow
+```mermaid
+sequenceDiagram
+    participant T as Test Client
+    participant API as API Server
+    participant DB as Databricks
+    
+    T->>API: Request with valid token
+    API->>API: Validate token
+    API->>DB: Execute query
+    DB-->>API: Return data
+    API-->>T: Success response (200)
+    
+    Note over T,API: Verify response format
+    Note over T,API: Verify data integrity
+```
+
+### Test Data
+- Valid token: `test_token_12345`
+- SQL query: `SELECT 1 as test`
+- Expected response: `{"status": "success", "data": [{"test": 1}]}`
+
+### Assertions
+1. Response status code is 200
+2. Response contains expected data structure
+3. Authentication headers are properly handled
+4. No sensitive data leaked in response
+
+### Error Scenarios
+- Invalid token → 401 Unauthorized
+- Expired token → 401 Unauthorized  
+- Missing token → 401 Unauthorized
+- Malformed token → 400 Bad Request
+```
+
+### Performance Test Documentation
+```markdown
+## Performance Test: Concurrent SQL Queries
+
+### Test Configuration
+- **Users**: 100 concurrent
+- **Duration**: 5 minutes
+- **Ramp-up**: 30 seconds
+- **Query**: `SELECT COUNT(*) FROM large_table`
+
+### Performance Targets
+```mermaid
+xychart-beta
+    title "Performance Targets vs Actual"
+    x-axis ["Response Time", "Throughput", "Error Rate"]
+    y-axis "Percentage" 0 --> 100
+    
+    bar "Target" [90, 95, 1]
+    bar "Actual" [85, 98, 0.5]
+```
+
+### Results Analysis
+- **Average Response Time**: 850ms (target: <1000ms) ✅
+- **95th Percentile**: 1200ms (target: <1500ms) ✅
+- **Throughput**: 120 req/sec (target: >100 req/sec) ✅
+- **Error Rate**: 0.5% (target: <1%) ✅
+- **Memory Usage**: Peak 2.1GB (target: <3GB) ✅
+```
+
+## Quality Metrics Dashboard
+
+### Code Quality Visualization
+```mermaid
+graph LR
+    subgraph "Code Quality Metrics"
+        A[Code Coverage] --> A1[85%]
+        B[Code Complexity] --> B1[Low: 15, Med: 8, High: 2]
+        C[Technical Debt] --> C1[4 hours]
+        D[Security Issues] --> D1[0 Critical, 2 Minor]
+        E[Performance] --> E1[<500ms p95]
+    end
+    
+    subgraph "Quality Gates"
+        F[Coverage ≥ 80%] --> F1[✅ PASS]
+        G[Complexity ≤ 10] --> G1[⚠️ REVIEW]
+        H[Debt ≤ 8 hours] --> H1[✅ PASS]
+        I[Security = 0] --> I1[⚠️ MINOR]
+        J[Performance <1s] --> J1[✅ PASS]
+    end
+    
+    A1 --> F
+    B1 --> G
+    C1 --> H
+    D1 --> I
+    E1 --> J
+    
+    style F1 fill:#ccffcc
+    style G1 fill:#ffffcc
+    style H1 fill:#ccffcc
+    style I1 fill:#ffffcc
+    style J1 fill:#ccffcc
+```
+
+### Test Results Trends
+```mermaid
+xychart-beta
+    title "Test Results Over Time"
+    x-axis ["Week 1", "Week 2", "Week 3", "Week 4", "Week 5"]
+    y-axis "Percentage" 0 --> 100
+    
+    line "Pass Rate" [85, 88, 92, 95, 97]
+    line "Coverage" [78, 82, 85, 87, 89]
+    line "Performance" [80, 85, 88, 90, 92]
+```
+
+## Testing Workflow for Changes
+
+### Pre-Development Testing
+```mermaid
+graph TD
+    A[Feature Request] --> B[Test Planning]
+    B --> C[Test Case Design]
+    C --> D[Test Data Preparation]
+    D --> E[Environment Setup]
+    E --> F[Baseline Testing]
+    
+    B --> B1[Risk Assessment]
+    B --> B2[Test Strategy]
+    B --> B3[Acceptance Criteria]
+    
+    style B fill:#e8f5e8
+```
+
+### Development Testing Flow
+```mermaid
+graph TD
+    A[Code Changes] --> B[Unit Tests]
+    B --> C{All Pass?}
+    C -->|Yes| D[Integration Tests]
+    C -->|No| E[Fix Issues]
+    E --> B
+    
+    D --> F{All Pass?}
+    F -->|Yes| G[Code Review]
+    F -->|No| E
+    
+    G --> H[Performance Tests]
+    H --> I{Meet SLA?}
+    I -->|Yes| J[Security Tests]
+    I -->|No| E
+    
+    J --> K{No Issues?}
+    K -->|Yes| L[Ready for PR]
+    K -->|No| E
+    
+    style L fill:#ccffcc
+    style E fill:#ffcccc
+```
+
+### Post-Deployment Validation
+```mermaid
+graph LR
+    A[Deployment] --> B[Smoke Tests]
+    B --> C[Health Checks]
+    C --> D[Integration Validation]
+    D --> E[Performance Monitoring]
+    E --> F[User Acceptance]
+    
+    subgraph "Rollback Triggers"
+        G[Test Failures]
+        H[Performance Degradation]
+        I[Error Rate Spike]
+    end
+    
+    B --> G
+    E --> H
+    F --> I
+    
+    style A fill:#e8f5e8
+    style F fill:#ccffcc
+```
+
+## Quality Assurance by Feature Type
+
+### API Endpoint Testing
+```markdown
+## API Testing Checklist
+
+### Functional Testing
+- [ ] Valid request/response formats
+- [ ] All HTTP methods work correctly
+- [ ] Proper status codes returned
+- [ ] Error handling for invalid inputs
+- [ ] Data validation and sanitization
+
+### Security Testing
+- [ ] Authentication required
+- [ ] Authorization checks
+- [ ] Input validation (SQL injection, XSS)
+- [ ] Rate limiting enforced
+- [ ] Sensitive data protection
+
+### Performance Testing
+- [ ] Response time under load
+- [ ] Memory usage monitoring
+- [ ] Connection pooling efficiency
+- [ ] Concurrent request handling
+- [ ] Resource cleanup
+
+### Integration Testing
+- [ ] Databricks API connectivity
+- [ ] Error propagation
+- [ ] Transaction consistency
+- [ ] External service dependencies
+- [ ] Retry logic validation
+```
+
+### Database Integration Testing
+```mermaid
+graph TD
+    subgraph "Database Test Scenarios"
+        A[Connection Tests] --> A1[Valid Credentials]
+        A --> A2[Invalid Credentials]
+        A --> A3[Network Timeouts]
+        A --> A4[Connection Pooling]
+        
+        B[Query Tests] --> B1[Valid SQL]
+        B --> B2[Invalid SQL]
+        B --> B3[Large Result Sets]
+        B --> B4[Complex Queries]
+        
+        C[Error Handling] --> C1[Database Unavailable]
+        C --> C2[Query Timeouts]
+        C --> C3[Permission Errors]
+        C --> C4[Resource Limits]
+    end
+    
+    style A1 fill:#ccffcc
+    style B1 fill:#ccffcc
+    style C1 fill:#ffffcc
+```
+
+## Test Environment Management
+
+### Environment Strategy
+```mermaid
+graph TB
+    subgraph "Development"
+        A[Local Dev] --> A1[Unit Tests]
+        A --> A2[Integration Tests]
+        A --> A3[Manual Testing]
+    end
+    
+    subgraph "Testing"
+        B[Test Environment] --> B1[Full Integration]
+        B --> B2[Performance Tests]
+        B --> B3[Security Tests]
+        B --> B4[UAT]
+    end
+    
+    subgraph "Staging"
+        C[Pre-Production] --> C1[Load Testing]
+        C --> C2[Deployment Tests]
+        C --> C3[Final Validation]
+    end
+    
+    subgraph "Production"
+        D[Live Environment] --> D1[Smoke Tests]
+        D --> D2[Health Monitoring]
+        D --> D3[Real User Monitoring]
+    end
+    
+    A --> B
+    B --> C
+    C --> D
+    
+    style A fill:#e8f5e8
+    style B fill:#ffffcc
+    style C fill:#ffeecc
+    style D fill:#ffcccc
+```
+
+### Test Data Management
+```markdown
+## Test Data Strategy
+
+### Data Categories
+- **Synthetic Data**: Generated test data for unit tests
+- **Anonymized Production Data**: Scrubbed real data for integration tests
+- **Reference Data**: Standard test datasets for consistency
+- **Edge Case Data**: Boundary conditions and error scenarios
+
+### Data Refresh Strategy
+```mermaid
+gantt
+    title Test Data Refresh Schedule
+    dateFormat  YYYY-MM-DD
+    
+    section Development
+    Daily Synthetic Data   :active, dev-synth,  2024-01-01, 2024-12-31
+    
+    section Testing
+    Weekly Data Refresh    :active, test-ref,   2024-01-01, 2024-12-31
+    Monthly Full Refresh   :        test-full,  2024-01-01, 30d
+    
+    section Staging  
+    Production Mirror      :active, stage-mir,  2024-01-01, 2024-12-31
+    Weekly Anonymization   :        stage-anon, 2024-01-01, 7d
+```
+```
+
+## Monitoring and Alerting for Quality
+
+### Quality Alerts
+```mermaid
+graph TD
+    A[Quality Metrics] --> B{Threshold Check}
+    B -->|Coverage < 80%| C[Coverage Alert]
+    B -->|Tests Failing| D[Test Failure Alert]
+    B -->|Performance Degraded| E[Performance Alert]
+    B -->|Security Issues| F[Security Alert]
+    
+    C --> G[Block Deployment]
+    D --> G
+    E --> H[Performance Review]
+    F --> I[Security Review]
+    
+    style G fill:#ffcccc
+    style H fill:#ffffcc
+    style I fill:#ffcccc
+```
+
+### Quality Dashboards
+```markdown
+## Quality Dashboard Elements
+
+### Real-time Metrics
+- Test pass rate (last 24 hours)
+- Code coverage percentage
+- Performance benchmark results
+- Security scan status
+- Deployment success rate
+
+### Trend Analysis
+- Quality metrics over time
+- Test execution time trends
+- Error rate patterns
+- Performance degradation tracking
+- Technical debt accumulation
+
+### Alerts and Actions
+- Failed test notifications
+- Coverage drop alerts
+- Performance regression warnings
+- Security vulnerability notices
+- Deployment failure alerts
+```
+
+This comprehensive testing and quality framework ensures every change is thoroughly validated and quality is maintained as the system grows in complexity.

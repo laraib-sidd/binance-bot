@@ -1,0 +1,155 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
++description: "Comprehensive rules for Python Databricks API project"
++globs: ["**/*"]
++alwaysApply: true
+
+# Comprehensive Project Rules - ALL RULES ARE ABSOLUTE
+
+**🚨 CRITICAL: ALL RULES MUST BE FOLLOWED WITHOUT EXCEPTION 🚨**
+
+Apply these comprehensive rules for this Python Databricks API project. Every rule is mandatory and must be followed absolutely.
+
+## Overview
+This is a simple Python tool for working with Databricks APIs. These rules keep things organized without enterprise overhead.
+
+## Rule Categories
+
+### 1. Python Code Style
+- [001-code-style-python.mdc](mdc:.cursor/rules/001-code-style-python.mdc)
+  - Python formatting with black
+  - Import organization
+  - Naming conventions
+  - Type hints and documentation
+
+### 2. Comprehensive Documentation
+- [002-documentation.mdc](mdc:.cursor/rules/002-documentation.mdc)
+  - API documentation standards
+  - Architecture documentation
+  - Change documentation requirements
+  - Documentation automation and testing
+
+### 3. Comprehensive Security
+- [003-security.mdc](mdc:.cursor/rules/003-security.mdc)
+  - Security-first development approach
+  - Authentication and authorization
+  - Input validation and sanitization
+  - Security monitoring and alerting
+
+### 4. Comprehensive PR Process
+- [004-pr-process-comprehensive.mdc](mdc:.cursor/rules/004-pr-process-comprehensive.mdc)
+  - Architecture diagrams required
+  - Impact analysis documentation
+  - Usage examples and testing strategy
+  - **MANDATORY: Delete PR_BODY.md after PR creation**
+  - Growing project considerations
+
+### 5. Change Impact Tracking
+- [005-change-impact-tracking.mdc](mdc:.cursor/rules/005-change-impact-tracking.mdc)
+  - System impact visualization
+  - Dependency mapping
+  - Performance impact analysis
+  - Rollback planning
+
+### 6. API Evolution Tracking
+- [006-api-evolution-tracking.mdc](mdc:.cursor/rules/006-api-evolution-tracking.mdc)
+  - Version management strategy
+  - Architecture evolution visualization
+  - Compatibility management
+  - Future planning roadmaps
+
+### 7. Testing and Quality Visualization
+- [007-testing-and-quality-visualization.mdc](mdc:.cursor/rules/007-testing-and-quality-visualization.mdc)
+  - Comprehensive testing strategy
+  - Quality metrics dashboard
+  - Test coverage mapping
+  - Performance validation
+
+### 8. Change Tracking and Project Status (MANDATORY)
+- [008-change-tracking-mandatory.mdc](mdc:.cursor/rules/008-change-tracking-mandatory.mdc)
+  - **ABSOLUTE RULE**: Change tracking is mandatory
+  - CHANGELOG.md and PROJECT_STATUS.md maintenance
+  - Pre and post-change protocols
+  - Session-level tracking requirements
+
+### 9. Git Branch Protection
+- [009-git-branch-protection.mdc](mdc:.cursor/rules/009-git-branch-protection.mdc)
+  - Never push directly to main
+  - Feature branch workflow
+  - Branch naming conventions
+
+## ABSOLUTE Quality Checklist - MANDATORY FOR EVERY CHANGE
+**🚨 ALL items must be completed - NO EXCEPTIONS 🚨**
+
+### 📊 Change Tracking (MANDATORY FIRST)
+- [ ] **local/docs/CHANGELOG.md updated immediately**
+- [ ] **PROJECT_STATUS.md reflects current state**
+- [ ] **Change properly categorized and documented**
+- [ ] **Impact assessment completed**
+- [ ] **Dependencies and conflicts checked**
+
+### 🏗️ Architecture & Design
+- [ ] Architecture diagram created
+- [ ] System impact analyzed
+- [ ] Integration points documented
+- [ ] Performance impact assessed
+
+### 🧪 Testing & Quality
+- [ ] Unit tests written/updated
+- [ ] Integration tests pass
+- [ ] Performance tests completed
+- [ ] Error handling verified
+
+### 📋 Documentation
+- [ ] API documentation updated
+- [ ] Usage examples provided
+- [ ] Migration guides (if needed)
+- [ ] All documentation cross-referenced
+
+### 🔒 Security & Deployment
+- [ ] No credentials committed
+- [ ] Security considerations reviewed
+- [ ] Rollback plan documented
+- [ ] Monitoring considerations
+
+## Growing Platform Vision
+This project is evolving from simple API to comprehensive platform:
+- **Current**: Databricks API wrapper with SQL/Jobs/Clusters
+- **Near-term**: Streaming, caching, advanced analytics
+- **Long-term**: ML platform, multi-tenant architecture, enterprise features
+
+Every change should consider this growth trajectory and maintain high quality standards.
+
+## ABSOLUTE RULE ENFORCEMENT
+
+### 🚨 CRITICAL: ALL RULES ARE MANDATORY 🚨
+
+**BEFORE making ANY change:**
+1. **MUST** review local/docs/CHANGELOG.md and PROJECT_STATUS.md
+2. **MUST** understand current project context
+3. **MUST** ensure change aligns with project direction
+
+**DURING development:**
+1. **MUST** follow all coding standards absolutely
+2. **MUST** create required architecture diagrams
+3. **MUST** implement comprehensive testing
+4. **MUST** maintain security standards
+
+**AFTER making ANY change:**
+1. **MUST** update local/docs/CHANGELOG.md immediately
+2. **MUST** update PROJECT_STATUS.md
+3. **MUST** complete all checklist items
+4. **MUST** document impact and dependencies
+
+### Failure to Follow Rules
+**Failure to follow ANY rule will result in:**
+- Loss of project context and direction
+- Quality degradation and technical debt
+- Security vulnerabilities
+- Deployment and maintenance issues
+- **Immediate requirement to fix and document properly**
+
+**These rules exist to maintain excellence as the platform scales.**
