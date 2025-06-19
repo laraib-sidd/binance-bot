@@ -207,6 +207,11 @@ ENV/
 .env.test
 .env.production
 
+# Local Development Files (INTERNAL - NOT FOR COMMIT)
+local/
+local/**
+!local/.gitkeep
+
 # API Keys and Secrets (CRITICAL)
 config.py
 secrets.py

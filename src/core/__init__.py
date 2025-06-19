@@ -1,0 +1,3 @@
+"""
+Core trading engine components
+""" 

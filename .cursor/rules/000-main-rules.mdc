@@ -3,7 +3,7 @@ description:
 globs: 
 alwaysApply: true
 ---
-+description: "Comprehensive rules for Python Databricks API project"
++description: "Comprehensive rules for Python Trading Bot project"
 +globs: ["**/*"]
 +alwaysApply: true
 
@@ -11,10 +11,10 @@ alwaysApply: true
 
 **🚨 CRITICAL: ALL RULES MUST BE FOLLOWED WITHOUT EXCEPTION 🚨**
 
-Apply these comprehensive rules for this Python Databricks API project. Every rule is mandatory and must be followed absolutely.
+Apply these comprehensive rules for this Python Trading Bot project. Every rule is mandatory and must be followed absolutely.
 
 ## Overview
-This is a simple Python tool for working with Databricks APIs. These rules keep things organized without enterprise overhead.
+This is Helios - a sophisticated cryptocurrency trading bot implementing Signal-Driven Dynamic Grid Trading strategy. These rules ensure financial software quality, security, and risk management standards.
 
 ## Rule Categories
 
@@ -32,12 +32,12 @@ This is a simple Python tool for working with Databricks APIs. These rules keep 
   - Change documentation requirements
   - Documentation automation and testing
 
-### 3. Comprehensive Security
+### 3. Trading Bot Security & Financial Safety
 - [003-security.mdc](mdc:.cursor/rules/003-security.mdc)
   - Security-first development approach
-  - Authentication and authorization
-  - Input validation and sanitization
-  - Security monitoring and alerting
+  - API key and credential protection
+  - Financial data validation and sanitization
+  - Trading security and audit trails
 
 ### 4. Comprehensive PR Process
 - [004-pr-process-comprehensive.mdc](mdc:.cursor/rules/004-pr-process-comprehensive.mdc)
@@ -45,27 +45,27 @@ This is a simple Python tool for working with Databricks APIs. These rules keep 
   - Impact analysis documentation
   - Usage examples and testing strategy
   - **MANDATORY: Delete PR_BODY.md after PR creation**
-  - Growing project considerations
+  - Trading bot considerations
 
 ### 5. Change Impact Tracking
 - [005-change-impact-tracking.mdc](mdc:.cursor/rules/005-change-impact-tracking.mdc)
   - System impact visualization
   - Dependency mapping
   - Performance impact analysis
-  - Rollback planning
+  - Risk impact assessment
 
 ### 6. API Evolution Tracking
 - [006-api-evolution-tracking.mdc](mdc:.cursor/rules/006-api-evolution-tracking.mdc)
   - Version management strategy
   - Architecture evolution visualization
-  - Compatibility management
-  - Future planning roadmaps
+  - Trading strategy compatibility
+  - Exchange API evolution tracking
 
 ### 7. Testing and Quality Visualization
 - [007-testing-and-quality-visualization.mdc](mdc:.cursor/rules/007-testing-and-quality-visualization.mdc)
   - Comprehensive testing strategy
-  - Quality metrics dashboard
-  - Test coverage mapping
+  - Backtesting framework quality
+  - Risk testing and validation
   - Performance validation
 
 ### 8. Change Tracking and Project Status (MANDATORY)
@@ -80,6 +80,13 @@ This is a simple Python tool for working with Databricks APIs. These rules keep 
   - Never push directly to main
   - Feature branch workflow
   - Branch naming conventions
+
+### 10. Trading Bot Specific Rules (NEW)
+- [010-trading-bot-specific.mdc](mdc:.cursor/rules/010-trading-bot-specific.mdc)
+  - Financial data handling standards
+  - Risk management code requirements
+  - Backtesting validation rules
+  - Live vs paper trading protocols
 
 ## ABSOLUTE Quality Checklist - MANDATORY FOR EVERY CHANGE
 **🚨 ALL items must be completed - NO EXCEPTIONS 🚨**
@@ -96,30 +103,35 @@ This is a simple Python tool for working with Databricks APIs. These rules keep 
 - [ ] System impact analyzed
 - [ ] Integration points documented
 - [ ] Performance impact assessed
+- [ ] **Risk impact evaluated**
 
 ### 🧪 Testing & Quality
 - [ ] Unit tests written/updated
 - [ ] Integration tests pass
-- [ ] Performance tests completed
+- [ ] **Backtesting validation completed**
+- [ ] **Risk scenario testing done**
 - [ ] Error handling verified
 
 ### 📋 Documentation
 - [ ] API documentation updated
 - [ ] Usage examples provided
+- [ ] **Risk warnings documented**
 - [ ] Migration guides (if needed)
 - [ ] All documentation cross-referenced
 
 ### 🔒 Security & Deployment
-- [ ] No credentials committed
+- [ ] **No credentials committed**
+- [ ] **API keys properly secured**
+- [ ] **Financial data validation implemented**
 - [ ] Security considerations reviewed
 - [ ] Rollback plan documented
 - [ ] Monitoring considerations
 
 ## Growing Platform Vision
-This project is evolving from simple API to comprehensive platform:
-- **Current**: Databricks API wrapper with SQL/Jobs/Clusters
-- **Near-term**: Streaming, caching, advanced analytics
-- **Long-term**: ML platform, multi-tenant architecture, enterprise features
+This project is evolving from basic trading bot to comprehensive trading platform:
+- **Current**: Signal-Driven Dynamic Grid Trading with Binance integration
+- **Near-term**: Multi-exchange support, advanced signals, portfolio management
+- **Long-term**: ML-powered signals, multi-strategy portfolio, risk analytics platform
 
 Every change should consider this growth trajectory and maintain high quality standards.
 
@@ -131,25 +143,29 @@ Every change should consider this growth trajectory and maintain high quality st
 1. **MUST** review local/docs/CHANGELOG.md and PROJECT_STATUS.md
 2. **MUST** understand current project context
 3. **MUST** ensure change aligns with project direction
+4. **MUST** validate financial safety implications
 
 **DURING development:**
 1. **MUST** follow all coding standards absolutely
 2. **MUST** create required architecture diagrams
 3. **MUST** implement comprehensive testing
 4. **MUST** maintain security standards
+5. **MUST** validate risk management implications
 
 **AFTER making ANY change:**
 1. **MUST** update local/docs/CHANGELOG.md immediately
 2. **MUST** update PROJECT_STATUS.md
 3. **MUST** complete all checklist items
 4. **MUST** document impact and dependencies
+5. **MUST** validate backtest results if strategy changed
 
 ### Failure to Follow Rules
 **Failure to follow ANY rule will result in:**
 - Loss of project context and direction
 - Quality degradation and technical debt
+- **FINANCIAL RISK and potential losses**
 - Security vulnerabilities
 - Deployment and maintenance issues
 - **Immediate requirement to fix and document properly**
 
-**These rules exist to maintain excellence as the platform scales.**
+**These rules exist to maintain excellence and financial safety as the platform scales.**

@@ -1,0 +1,398 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Trading Bot Specific Development Rules
+
+## Overview
+These rules are specific to cryptocurrency trading bot development and must be followed for Helios. They ensure financial safety, proper risk management implementation, and reliable backtesting.
+
+## Financial Data Handling Standards
+
+### 1. Precision and Decimal Handling
+**CRITICAL**: Financial calculations must use proper decimal precision
+
+```python
+from decimal import Decimal, ROUND_HALF_UP
+
+# ✅ CORRECT: Use Decimal for financial calculations
+def calculate_position_size(balance: float, risk_percent: float) -> Decimal:
+    """Calculate position size with proper decimal precision"""
+    balance_decimal = Decimal(str(balance))
+    risk_decimal = Decimal(str(risk_percent))
+    
+    position_size = balance_decimal * risk_decimal
+    return position_size.quantize(Decimal('0.00000001'), rounding=ROUND_HALF_UP)
+
+# ❌ WRONG: Float arithmetic for money
+position_size = balance * 0.01  # Can cause precision errors
+```
+
+### 2. Price and Volume Validation
+All market data must be validated before use
+
+```python
+def validate_market_data(ohlcv_data: pd.DataFrame) -> bool:
+    """Validate OHLCV data integrity"""
+    
+    # Check for required columns
+    required_cols = ['open', 'high', 'low', 'close', 'volume']
+    if not all(col in ohlcv_data.columns for col in required_cols):
+        raise ValueError("Missing required OHLCV columns")
+    
+    # Validate OHLC relationships
+    invalid_bars = (
+        (ohlcv_data['high'] < ohlcv_data['low']) |
+        (ohlcv_data['high'] < ohlcv_data['open']) |
+        (ohlcv_data['high'] < ohlcv_data['close']) |
+        (ohlcv_data['low'] > ohlcv_data['open']) |
+        (ohlcv_data['low'] > ohlcv_data['close'])
+    )
+    
+    if invalid_bars.any():
+        raise ValueError(f"Invalid OHLC relationships found in {invalid_bars.sum()} bars")
+    
+    # Check for negative values
+    if (ohlcv_data[['open', 'high', 'low', 'close', 'volume']] < 0).any().any():
+        raise ValueError("Negative values found in market data")
+    
+    return True
+```
+
+### 3. Order Size and Balance Validation
+```python
+def validate_order_parameters(symbol: str, side: str, quantity: float, 
+                            price: float, account_balance: float) -> bool:
+    """Validate order parameters before placement"""
+    
+    # Basic parameter validation
+    if quantity <= 0:
+        raise ValueError(f"Invalid quantity: {quantity}")
+    
+    if price <= 0:
+        raise ValueError(f"Invalid price: {price}")
+    
+    if side not in ['BUY', 'SELL']:
+        raise ValueError(f"Invalid side: {side}")
+    
+    # Check minimum order size
+    min_qty = get_min_order_quantity(symbol)
+    if quantity < min_qty:
+        raise ValueError(f"Quantity {quantity} below minimum {min_qty} for {symbol}")
+    
+    # Check account balance
+    if side == 'BUY':
+        required_balance = quantity * price
+        if required_balance > account_balance * 0.95:  # 5% buffer
+            raise ValueError(f"Insufficient balance: need {required_balance}, have {account_balance}")
+    
+    return True
+```
+
+## Risk Management Code Requirements
+
+### 1. Mandatory Risk Checks
+Every trading decision must pass risk validation
+
+```python
+class RiskManager:
+    def __init__(self, config: TradingConfig):
+        self.max_position_size = config.risk_per_trade
+        self.max_drawdown = config.max_drawdown
+        self.daily_loss_limit = config.daily_loss_limit
+        
+    def validate_new_position(self, proposed_size: float, current_balance: float,
+                            initial_balance: float, daily_pnl: float) -> bool:
+        """Comprehensive risk validation before opening position"""
+        
+        # 1. Position size validation
+        max_allowed = current_balance * self.max_position_size
+        if proposed_size > max_allowed:
+            raise RiskLimitExceeded(f"Position size {proposed_size} > max {max_allowed}")
+        
+        # 2. Drawdown check
+        drawdown = (initial_balance - current_balance) / initial_balance
+        if drawdown >= self.max_drawdown:
+            raise DrawdownLimitExceeded(f"Drawdown {drawdown:.2%} >= limit {self.max_drawdown:.2%}")
+        
+        # 3. Daily loss limit
+        if daily_pnl <= -abs(current_balance * self.daily_loss_limit):
+            raise DailyLossLimitExceeded(f"Daily loss {daily_pnl} exceeds limit")
+        
+        return True
+```
+
+### 2. Stop-Loss Implementation Requirements
+```python
+def calculate_stop_loss(entry_price: float, side: str, atr: float, 
+                       max_loss_percent: float = 0.02) -> float:
+    """Calculate stop-loss price with multiple methods"""
+    
+    # Method 1: ATR-based stop loss
+    atr_multiplier = 2.0
+    if side == 'BUY':
+        atr_stop = entry_price - (atr * atr_multiplier)
+    else:
+        atr_stop = entry_price + (atr * atr_multiplier)
+    
+    # Method 2: Percentage-based stop loss
+    if side == 'BUY':
+        percent_stop = entry_price * (1 - max_loss_percent)
+    else:
+        percent_stop = entry_price * (1 + max_loss_percent)
+    
+    # Use the more conservative (closer) stop loss
+    if side == 'BUY':
+        final_stop = max(atr_stop, percent_stop)
+    else:
+        final_stop = min(atr_stop, percent_stop)
+    
+    return final_stop
+```
+
+## Backtesting Validation Rules
+
+### 1. Data Quality Requirements
+```python
+def validate_backtest_data(data: pd.DataFrame, start_date: str, end_date: str) -> bool:
+    """Validate historical data quality for backtesting"""
+    
+    # Check date range
+    data_start = data.index.min()
+    data_end = data.index.max()
+    
+    if data_start > pd.Timestamp(start_date):
+        raise ValueError(f"Data starts {data_start}, but backtest needs {start_date}")
+    
+    if data_end < pd.Timestamp(end_date):
+        raise ValueError(f"Data ends {data_end}, but backtest needs {end_date}")
+    
+    # Check for gaps in data
+    expected_periods = pd.date_range(start=data_start, end=data_end, freq='1H')
+    missing_periods = expected_periods.difference(data.index)
+    
+    if len(missing_periods) > len(expected_periods) * 0.01:  # >1% missing
+        raise ValueError(f"Too many missing periods: {len(missing_periods)}")
+    
+    # Check for outliers
+    price_cols = ['open', 'high', 'low', 'close']
+    for col in price_cols:
+        q99 = data[col].quantile(0.99)
+        q01 = data[col].quantile(0.01)
+        outliers = ((data[col] > q99 * 3) | (data[col] < q01 * 0.33)).sum()
+        
+        if outliers > len(data) * 0.001:  # >0.1% outliers
+            print(f"Warning: {outliers} potential outliers in {col}")
+    
+    return True
+```
+
+### 2. Backtest Results Validation
+```python
+def validate_backtest_results(results: dict) -> bool:
+    """Validate backtest results for reasonableness"""
+    
+    # Check for impossible metrics
+    if results.get('win_rate', 0) > 0.95:
+        raise ValueError(f"Win rate {results['win_rate']:.2%} suspiciously high")
+    
+    if results.get('sharpe_ratio', 0) > 5.0:
+        raise ValueError(f"Sharpe ratio {results['sharpe_ratio']:.2f} suspiciously high")
+    
+    if results.get('max_drawdown', 0) == 0:
+        raise ValueError("Max drawdown of 0% indicates unrealistic backtest")
+    
+    # Check trade count
+    total_trades = results.get('total_trades', 0)
+    backtest_days = results.get('backtest_days', 1)
+    
+    if total_trades > backtest_days * 10:  # >10 trades per day
+        raise ValueError(f"Too many trades: {total_trades} in {backtest_days} days")
+    
+    if total_trades < backtest_days / 10:  # <1 trade per 10 days
+        print(f"Warning: Very few trades: {total_trades} in {backtest_days} days")
+    
+    return True
+```
+
+### 3. Walk-Forward Testing Requirements
+```python
+def run_walk_forward_test(strategy, data: pd.DataFrame, 
+                         lookback_days: int = 90, forward_days: int = 30) -> dict:
+    """Mandatory walk-forward validation"""
+    
+    results = []
+    start_date = data.index.min()
+    end_date = data.index.max()
+    
+    current_date = start_date + pd.Timedelta(days=lookback_days)
+    
+    while current_date + pd.Timedelta(days=forward_days) <= end_date:
+        # Training period
+        train_start = current_date - pd.Timedelta(days=lookback_days)
+        train_end = current_date
+        train_data = data[train_start:train_end]
+        
+        # Optimize strategy on training data
+        optimized_params = strategy.optimize(train_data)
+        
+        # Test period
+        test_start = current_date
+        test_end = current_date + pd.Timedelta(days=forward_days)
+        test_data = data[test_start:test_end]
+        
+        # Run strategy on test data
+        strategy.set_parameters(optimized_params)
+        test_results = strategy.backtest(test_data)
+        
+        results.append({
+            'test_start': test_start,
+            'test_end': test_end,
+            'returns': test_results['total_return'],
+            'sharpe': test_results['sharpe_ratio'],
+            'max_dd': test_results['max_drawdown']
+        })
+        
+        current_date += pd.Timedelta(days=forward_days)
+    
+    return analyze_walk_forward_results(results)
+```
+
+## Live vs Paper Trading Protocols
+
+### 1. Environment Separation
+```python
+class TradingEnvironment:
+    def __init__(self, config: TradingConfig):
+        self.environment = os.getenv("TRADING_ENVIRONMENT", "PAPER").upper()
+        self.config = config
+        
+        # Validate environment
+        if self.environment not in ["PAPER", "TESTNET", "LIVE"]:
+            raise ValueError(f"Invalid environment: {self.environment}")
+        
+        # Safety checks for live trading
+        if self.environment == "LIVE":
+            self._validate_live_trading_readiness()
+    
+    def _validate_live_trading_readiness(self):
+        """Comprehensive checks before allowing live trading"""
+        
+        # Check backtest results exist
+        if not os.path.exists("backtest_results.json"):
+            raise ValueError("No backtest results found - cannot trade live")
+        
+        # Check paper trading results
+        if not os.path.exists("paper_trading_results.json"):
+            raise ValueError("No paper trading results - cannot trade live")
+        
+        # Check risk parameters are reasonable
+        if self.config.risk_per_trade > 0.02:  # 2% max for live
+            raise ValueError(f"Risk per trade {self.config.risk_per_trade:.1%} too high for live")
+        
+        # Require explicit confirmation
+        print("🚨 LIVE TRADING MODE ACTIVATED 🚨")
+        print("This will use real money and can result in losses.")
+        confirmation = input("Type 'LIVE_TRADING_CONFIRMED' to proceed: ")
+        
+        if confirmation != "LIVE_TRADING_CONFIRMED":
+            raise ValueError("Live trading not confirmed")
+```
+
+### 2. Order Execution Differences
+```python
+def place_order(self, symbol: str, side: str, quantity: float, 
+               price: float = None) -> dict:
+    """Place order with environment-specific handling"""
+    
+    if self.environment == "PAPER":
+        return self._simulate_order_execution(symbol, side, quantity, price)
+    
+    elif self.environment == "TESTNET":
+        return self._place_testnet_order(symbol, side, quantity, price)
+    
+    elif self.environment == "LIVE":
+        # Additional safety checks for live orders
+        self._validate_live_order_safety(symbol, side, quantity, price)
+        return self._place_live_order(symbol, side, quantity, price)
+```
+
+## Code Quality Requirements
+
+### 1. Error Handling Standards
+```python
+# ✅ REQUIRED: Comprehensive error handling
+try:
+    result = exchange_api.get_account_balance()
+except requests.exceptions.RequestException as e:
+    logger.error(f"Network error getting balance: {e}")
+    # Use cached balance or halt trading
+    return handle_network_error()
+except binance.exceptions.BinanceAPIException as e:
+    logger.error(f"Binance API error: {e.code} - {e.message}")
+    if e.code in CRITICAL_ERROR_CODES:
+        emergency_shutdown("API error")
+    return None
+except Exception as e:
+    logger.critical(f"Unexpected error: {e}")
+    emergency_shutdown("Unexpected error")
+    raise
+```
+
+### 2. Testing Requirements
+Every trading function must have comprehensive tests
+
+```python
+# Example test structure
+def test_position_size_calculation():
+    """Test position sizing with various scenarios"""
+    
+    # Normal case
+    size = calculate_position_size(1000.0, 0.01)  # $1000 balance, 1% risk
+    assert size == Decimal('10.00')
+    
+    # Edge cases
+    with pytest.raises(ValueError):
+        calculate_position_size(0, 0.01)  # Zero balance
+    
+    with pytest.raises(ValueError):
+        calculate_position_size(1000, -0.01)  # Negative risk
+    
+    with pytest.raises(ValueError):
+        calculate_position_size(1000, 1.5)  # Risk > 100%
+```
+
+## Mandatory Quality Checklist
+
+### Before Implementing Any Trading Logic:
+- [ ] All financial calculations use Decimal precision
+- [ ] Input validation implemented for all parameters
+- [ ] Error handling covers all API exceptions
+- [ ] Risk limits enforced at multiple levels
+- [ ] Stop-loss calculations validated
+- [ ] Order size validation implemented
+
+### Before Running Backtests:
+- [ ] Data quality validation passes
+- [ ] Walk-forward testing implemented
+- [ ] Realistic slippage and fees included
+- [ ] Results validation checks pass
+- [ ] Out-of-sample testing completed
+
+### Before Paper Trading:
+- [ ] Backtesting results documented
+- [ ] All risk parameters validated
+- [ ] Environment separation working
+- [ ] Order simulation accurate
+- [ ] Performance monitoring active
+
+### Before Live Trading:
+- [ ] Paper trading results meet expectations
+- [ ] All safety checks implemented
+- [ ] Emergency shutdown procedures tested
+- [ ] Risk parameters conservative
+- [ ] Full audit trail implemented
+- [ ] Live trading confirmation protocol active
+
+**These rules are mandatory for financial safety and must never be bypassed.**
