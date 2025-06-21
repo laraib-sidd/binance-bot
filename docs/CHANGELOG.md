@@ -21,11 +21,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Directory structure validation and automatic creation
     - Detailed validation reporting with error categorization
     - System resource monitoring (memory, disk space)
-  - **Automated Setup Scripts**:
+  - **Modern Python Package Management**:
+    - **pyproject.toml**: Complete modern Python packaging configuration
+    - **UV support**: Fast dependency management (10-100x faster than pip)
+    - **Automatic fallback**: Uses pip if UV not available
+    - **Optional dependencies**: Organized by purpose (dev, viz, notifications, backtest)
+    - **Tool configuration**: Black, Ruff, MyPy, Pytest all configured
+  - **Automated Setup Scripts** (moved to root):
     - test_environment.py: Comprehensive environment testing with 5 test categories
-    - setup_dev_environment.py: Automated development environment setup
-    - Dependency management and requirements.txt creation
+    - setup_dev_environment.py: Automated environment setup with UV/pip detection
+    - Modern dependency management with pyproject.toml
     - Sample configuration file generation (.env.example, config.example.py)
+    - UV setup guide (uv_setup.md) for fast modern development
   - **Advanced Logging System** (src/utils/logging.py):
     - TradingLoggerAdapter with trading-specific context
     - Multiple log formatters (standard, compact, JSON)
@@ -38,13 +45,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Validation testing for API keys, trading parameters, risk management
     - Integration tests for complete configuration workflow
     - Mock testing for environment variables and file operations
-  - **Project Structure**:
+  - **Professional Project Structure**:
     - Complete directory structure creation with __init__.py files
-    - Proper Python package organization
+    - Modern Python package organization with pyproject.toml
     - Git ignore setup for security and cleanliness
     - Local data and logs directory structure
-  - Context: Phase 1.1 establishes the foundation for all future development
-  - Impact: Secure, validated, and well-tested environment ready for Phase 1.2 API integration
+    - Script commands available via `helios-*` CLI tools
+  - Context: Phase 1.1 establishes modern Python foundation for all future development
+  - Impact: Secure, validated, and well-tested environment with fast dependency management ready for Phase 1.2 API integration
 
 ### Fixed
 - **2024-01-20**: Restored missing phased development rule content (011-phased-development-testing.mdc)

@@ -50,6 +50,7 @@ class EnvironmentSetup:
         self.project_root = project_root
         self.setup_steps = []
         self.errors = []
+        self.package_manager = "uv"  # Default to uv, will be updated during tool check
         
     def print_header(self):
         """Print setup header."""
@@ -85,7 +86,8 @@ class EnvironmentSetup:
         """Check for required system tools."""
         print("\n🛠️  Checking System Tools...")
         
-        required_tools = ["pip", "git"]
+        required_tools = ["git"]
+        optional_tools = ["uv", "pip"]
         missing_tools = []
         
         for tool in required_tools:
@@ -94,6 +96,21 @@ class EnvironmentSetup:
             else:
                 print(f"  ❌ {tool} not found")
                 missing_tools.append(tool)
+        
+        # Check for package managers (uv preferred)
+        uv_available = shutil.which("uv") is not None
+        pip_available = shutil.which("pip") is not None
+        
+        if uv_available:
+            print("  ✅ uv found (preferred package manager)")
+            self.package_manager = "uv"
+        elif pip_available:
+            print("  ✅ pip found (fallback package manager)")
+            print("  💡 Consider installing uv for faster dependency management: https://github.com/astral-sh/uv")
+            self.package_manager = "pip"
+        else:
+            print("  ❌ No package manager found (need uv or pip)")
+            missing_tools.append("uv or pip")
         
         if missing_tools:
             error_msg = f"Missing required tools: {', '.join(missing_tools)}"
@@ -176,94 +193,86 @@ class EnvironmentSetup:
         return True
     
     def install_requirements(self) -> bool:
-        """Install required Python packages."""
+        """Install required Python packages using uv or pip."""
         print("\n📦 Installing Python Dependencies...")
         
-        # Check if requirements.txt exists
-        requirements_file = self.project_root / "requirements.txt"
-        if not requirements_file.exists():
-            print("  ⚠️  requirements.txt not found, creating basic requirements...")
-            self.create_requirements_file()
+        # Check if pyproject.toml exists
+        pyproject_file = self.project_root / "pyproject.toml"
+        if not pyproject_file.exists():
+            print("  ⚠️  pyproject.toml not found, this should not happen in modern setup")
+            return False
         
         try:
-            # Upgrade pip first
-            print("  Upgrading pip...")
-            subprocess.run([
-                sys.executable, "-m", "pip", "install", "--upgrade", "pip"
-            ], check=True, capture_output=True, text=True)
-            print("  ✅ pip upgraded successfully")
-            
-            # Install requirements
-            print("  Installing requirements from requirements.txt...")
-            result = subprocess.run([
-                sys.executable, "-m", "pip", "install", "-r", str(requirements_file)
-            ], capture_output=True, text=True)
-            
-            if result.returncode == 0:
-                print("  ✅ Dependencies installed successfully")
-                return True
-            else:
-                print(f"  ❌ Failed to install dependencies: {result.stderr}")
-                self.errors.append(f"pip install failed: {result.stderr}")
-                return False
+            if self.package_manager == "uv":
+                print("  🚀 Using uv for fast dependency installation...")
                 
+                # Install dependencies with uv
+                print("  Installing core dependencies...")
+                result = subprocess.run([
+                    "uv", "pip", "install", "-e", "."
+                ], capture_output=True, text=True)
+                
+                if result.returncode == 0:
+                    print("  ✅ Core dependencies installed successfully")
+                    
+                    # Install dev dependencies
+                    print("  Installing development dependencies...")
+                    dev_result = subprocess.run([
+                        "uv", "pip", "install", "-e", ".[dev]"
+                    ], capture_output=True, text=True)
+                    
+                    if dev_result.returncode == 0:
+                        print("  ✅ Development dependencies installed successfully")
+                        return True
+                    else:
+                        print(f"  ⚠️  Dev dependencies failed, but core succeeded: {dev_result.stderr}")
+                        return True  # Core succeeded, dev is optional
+                else:
+                    print(f"  ❌ Failed to install dependencies with uv: {result.stderr}")
+                    self.errors.append(f"uv install failed: {result.stderr}")
+                    return False
+            
+            else:  # Fallback to pip
+                print("  📦 Using pip for dependency installation...")
+                
+                # Upgrade pip first
+                print("  Upgrading pip...")
+                subprocess.run([
+                    sys.executable, "-m", "pip", "install", "--upgrade", "pip"
+                ], check=True, capture_output=True, text=True)
+                print("  ✅ pip upgraded successfully")
+                
+                # Install dependencies
+                print("  Installing dependencies from pyproject.toml...")
+                result = subprocess.run([
+                    sys.executable, "-m", "pip", "install", "-e", "."
+                ], capture_output=True, text=True)
+                
+                if result.returncode == 0:
+                    print("  ✅ Core dependencies installed successfully")
+                    
+                    # Try to install dev dependencies
+                    dev_result = subprocess.run([
+                        sys.executable, "-m", "pip", "install", "-e", ".[dev]"
+                    ], capture_output=True, text=True)
+                    
+                    if dev_result.returncode == 0:
+                        print("  ✅ Development dependencies installed successfully")
+                    else:
+                        print("  ⚠️  Development dependencies failed (optional)")
+                    
+                    return True
+                else:
+                    print(f"  ❌ Failed to install dependencies: {result.stderr}")
+                    self.errors.append(f"pip install failed: {result.stderr}")
+                    return False
+                    
         except subprocess.CalledProcessError as e:
             print(f"  ❌ Failed to install dependencies: {e}")
-            self.errors.append(f"pip install failed: {e}")
+            self.errors.append(f"Package installation failed: {e}")
             return False
     
-    def create_requirements_file(self) -> None:
-        """Create a requirements.txt file with essential dependencies."""
-        requirements_content = """# Helios Trading Bot - Core Dependencies
-# Cryptocurrency Trading
-python-binance>=1.0.17
-ccxt>=4.1.0
 
-# Data Analysis and Processing
-pandas>=1.5.3
-numpy>=1.24.0
-ta>=0.10.2
-
-# API and Web
-requests>=2.28.0
-aiohttp>=3.8.0
-websockets>=11.0.0
-
-# Configuration and Environment
-python-dotenv>=1.0.0
-
-# Logging and Monitoring
-loguru>=0.7.0
-
-# Testing (Development)
-pytest>=7.2.0
-pytest-asyncio>=0.21.0
-pytest-cov>=4.0.0
-
-# Code Quality (Development)
-black>=23.0.0
-flake8>=6.0.0
-mypy>=1.0.0
-
-# Documentation (Development)
-sphinx>=6.0.0
-sphinx-rtd-theme>=1.2.0
-
-# Visualization (Optional)
-matplotlib>=3.6.0
-plotly>=5.13.0
-
-# Notifications (Optional)
-python-telegram-bot>=20.0.0
-"""
-        
-        requirements_file = self.project_root / "requirements.txt"
-        try:
-            with open(requirements_file, 'w') as f:
-                f.write(requirements_content)
-            print(f"  ✅ Created requirements.txt")
-        except Exception as e:
-            print(f"  ❌ Failed to create requirements.txt: {e}")
     
     def create_sample_config_files(self) -> bool:
         """Create sample configuration files."""

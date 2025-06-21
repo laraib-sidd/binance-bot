@@ -103,7 +103,7 @@ def test_project_structure():
         "src/core/__init__.py",
         "src/core/config.py",
         "src/core/environment.py",
-        "requirements.txt",
+        "pyproject.toml",
         "README.md"
     ]
     
