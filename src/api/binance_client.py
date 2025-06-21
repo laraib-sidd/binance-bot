@@ -493,17 +493,18 @@ class BinanceClient:
         Returns:
             Dictionary mapping symbols to current prices
         """
-        # Use simple price endpoint for efficiency
-        symbols_upper = [s.upper() for s in symbols]
-        params = {'symbols': json.dumps(symbols_upper)}
-        
-        response = await self._make_request('GET', '/api/v3/ticker/price', params)
-        
+        # For multiple symbols, make individual requests to avoid formatting issues
         prices = {}
-        for price_data in response:
-            symbol = price_data['symbol']
-            price = Decimal(str(price_data['price']))
-            prices[symbol] = price
+        
+        for symbol in symbols:
+            try:
+                params = {'symbol': symbol.upper()}
+                response = await self._make_request('GET', '/api/v3/ticker/price', params)
+                price = Decimal(str(response['price']))
+                prices[symbol.upper()] = price
+            except Exception as e:
+                logger.warning(f"Failed to get price for {symbol}: {e}")
+                continue
         
         logger.debug(f"💱 Current prices: {len(prices)} symbols")
         return prices
