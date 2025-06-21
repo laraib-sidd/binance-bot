@@ -81,12 +81,25 @@ This is Helios - a sophisticated cryptocurrency trading bot implementing Signal-
   - Feature branch workflow
   - Branch naming conventions
 
-### 10. Trading Bot Specific Rules (NEW)
+### 10. Trading Bot Specific Rules
 - [010-trading-bot-specific.mdc](mdc:.cursor/rules/010-trading-bot-specific.mdc)
   - Financial data handling standards
   - Risk management code requirements
   - Backtesting validation rules
   - Live vs paper trading protocols
+
+### 11. Phased Development and User Testing (NEW)
+- [011-phased-development-testing.mdc](mdc:.cursor/rules/011-phased-development-testing.mdc)
+  - Mandatory phased development approach
+  - User testing requirements for each feature
+  - Risk-based phase sizing guidelines
+  - Feature approval and merge processes
+
+- [011-phased-development-testing.mdc](mdc:.cursor/rules/011-phased-development-testing.mdc)
+  - Mandatory phased development approach
+  - User testing requirements for each feature
+  - Risk-based phase sizing guidelines
+  - Feature approval and merge processes
 
 ## ABSOLUTE Quality Checklist - MANDATORY FOR EVERY CHANGE
 **🚨 ALL items must be completed - NO EXCEPTIONS 🚨**
