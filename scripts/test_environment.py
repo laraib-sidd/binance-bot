@@ -21,8 +21,8 @@ import argparse
 from pathlib import Path
 from datetime import datetime
 
-# Add src to path for imports
-project_root = Path(__file__).parent
+# Add src to path for imports - go up one level since we're in scripts/
+project_root = Path(__file__).parent.parent
 if str(project_root / "src") not in sys.path:
     sys.path.insert(0, str(project_root / "src"))
 

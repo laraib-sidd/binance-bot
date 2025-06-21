@@ -22,8 +22,8 @@ from pathlib import Path
 from datetime import datetime
 from typing import List, Tuple, Optional
 
-# Project root
-project_root = Path(__file__).parent
+# Project root - go up one level since we're in scripts/
+project_root = Path(__file__).parent.parent
 logs_dir = project_root / "local" / "logs"
 logs_dir.mkdir(parents=True, exist_ok=True)
 
