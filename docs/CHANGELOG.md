@@ -51,6 +51,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Git ignore setup for security and cleanliness
     - Local data and logs directory structure
     - Script commands available via `helios-*` CLI tools
+  - **Scripts Organization & .env Configuration** (2024-12-22):
+    - Moved setup and test scripts to `scripts/` directory for better organization
+    - Created comprehensive `.env.example` file with all configuration options
+    - Updated README.md with modern setup instructions using .env file
+    - Scripts now automatically load from .env file without manual exports
+    - Updated pyproject.toml script references for new script locations
+    - Enhanced user experience with clear, single-file configuration approach
   - Context: Phase 1.1 establishes modern Python foundation for all future development
   - Impact: Secure, validated, and well-tested environment with fast dependency management ready for Phase 1.2 API integration
 
