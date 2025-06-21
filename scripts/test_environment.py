@@ -157,8 +157,8 @@ def test_configuration_loading():
     print("\n⚙️  Testing Configuration Loading...")
     
     try:
-        # Test loading without .env file (from environment variables)
-        print("  Testing environment variable loading...")
+        # Test loading from .env file or environment variables
+        print("  Testing configuration loading (.env file or environment variables)...")
         config = load_configuration()
         print(f"  ✅ Configuration loaded for environment: {config.environment}")
         print(f"  ✅ Testnet mode: {config.binance_testnet}")
@@ -168,13 +168,17 @@ def test_configuration_loading():
         if config.binance_api_key and config.binance_api_secret:
             print("  ✅ API credentials configured")
         else:
-            print("  ⚠️  API credentials not configured (set BINANCE_API_KEY and BINANCE_API_SECRET)")
+            print("  ⚠️  API credentials not configured")
+            print("     💡 Create .env file with BINANCE_API_KEY and BINANCE_API_SECRET")
+            print("     💡 Or copy .env.example to .env and edit it")
         
         return True
         
     except Exception as e:
         print(f"  ❌ Configuration loading failed: {e}")
-        print("  💡 Make sure to set BINANCE_API_KEY and BINANCE_API_SECRET environment variables")
+        print("  💡 Solution: Create .env file with your API credentials")
+        print("     cp .env.example .env")
+        print("     # Then edit .env with your actual API keys")
         return False
 
 
@@ -237,12 +241,14 @@ def test_api_connectivity():
         config = load_configuration()
         
         if not config.binance_api_key or not config.binance_api_secret:
-            print("  ⚠️  Skipping API test - credentials not configured")
+            print("  ⚠️  Skipping API test - credentials not configured in .env file")
+            print("     💡 Add your API keys to .env file to test connectivity")
             return True
         
         # Basic credential format validation
         if len(config.binance_api_key) < 32 or len(config.binance_api_secret) < 32:
             print("  ❌ API credentials appear to be invalid (too short)")
+            print("     💡 Check your .env file for correct API key format")
             return False
         
         print("  ✅ API credentials format appears valid")
@@ -251,6 +257,7 @@ def test_api_connectivity():
         
     except Exception as e:
         print(f"  ❌ API connectivity test failed: {e}")
+        print("  💡 Check your .env file configuration")
         return False
 
 

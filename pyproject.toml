@@ -112,8 +112,8 @@ Repository = "https://github.com/laraib-sidd/binance-bot"
 [project.scripts]
 helios = "src.main:main"
 helios-backtest = "src.backtest.main:main"
-helios-setup = "setup_dev_environment:main"
-helios-test = "test_environment:main"
+helios-setup = "scripts.setup_dev_environment:main"
+helios-test = "scripts.test_environment:main"
 
 # Tool Configuration
 [tool.black]

@@ -30,10 +30,10 @@ uv pip install -e .[dev]
 
 ```bash
 # Test environment
-python test_environment.py
+python3 scripts/test_environment.py
 
 # Run setup validation
-python setup_dev_environment.py
+python3 scripts/setup_dev_environment.py
 ```
 
 ## Why UV?
@@ -72,13 +72,13 @@ uv pip install -e .[backtest]     # Backtesting tools
 ## Environment Setup
 
 ```bash
-# Set your API credentials
+# Create .env file with your API credentials (RECOMMENDED)
+cp .env.example .env
+# Edit .env with your actual Binance testnet API keys
+
+# Alternative: Set environment variables (temporary)
 export BINANCE_API_KEY="your_api_key_here"
 export BINANCE_API_SECRET="your_api_secret_here"
-
-# Or create .env file
-cp .env.example .env
-# Edit .env with your credentials
 ```
 
 ## Development Workflow

@@ -206,6 +206,8 @@ ENV/
 .env.development
 .env.test
 .env.production
+# But allow the example file
+!.env.example
 
 # Local Development Files (INTERNAL - NOT FOR COMMIT)
 local/
