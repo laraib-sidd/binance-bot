@@ -17,10 +17,21 @@ from .exceptions import (
     AuthenticationError,
     NetworkError,
 )
+from .binance_client import BinanceClient
+from .models import TickerData, KlineData, AccountInfo, ExchangeInfo, SymbolInfo
+from .rate_limiter import get_rate_limiter_status, is_rate_limiter_healthy
 
 __all__ = [
+    "BinanceClient",
     "BinanceAPIError",
     "RateLimitError", 
     "AuthenticationError",
     "NetworkError",
+    "TickerData",
+    "KlineData", 
+    "AccountInfo",
+    "ExchangeInfo",
+    "SymbolInfo",
+    "get_rate_limiter_status",
+    "is_rate_limiter_healthy",
 ] 
