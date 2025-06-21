@@ -37,25 +37,80 @@ Unlike standard trading bots, Helios combines:
 2. **Dynamic Grids** - ATR-based grid sizing that adapts to market conditions
 3. **Smart Exit** - Automatic session termination to prevent major losses
 
-## Quick Start
+## 🚀 Quick Start
+
+### Prerequisites
+- **Python 3.11+** (recommended for best performance)
+- **Binance Testnet Account** for API keys
+- **UV Package Manager** (optional, but 10-100x faster than pip)
+
+### Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/helios-trading-bot.git
-cd helios-trading-bot
+git clone https://github.com/laraib-sidd/binance-bot.git
+cd binance-bot
 
-# Install dependencies
-pip install -r requirements.txt
+# Option 1: Fast setup with UV (recommended)
+curl -LsSf https://astral.sh/uv/install.sh | sh  # Install UV
+python3 scripts/setup_dev_environment.py        # Auto-detects UV
 
-# Configure API keys
-cp config.example.py config.py
-# Edit config.py with your API credentials
+# Option 2: Traditional setup with pip
+python3 scripts/setup_dev_environment.py        # Auto-detects pip
 
-# Run backtesting
-python src/backtest.py
+# Test your environment
+python3 scripts/test_environment.py
+```
 
-# Start paper trading
-python src/bot.py --paper-trade
+### Configuration
+
+**Step 1: Get Binance API Keys**
+1. Go to [Binance Testnet](https://testnet.binance.vision/)
+2. Create account and generate API keys
+3. Choose **"System generated"** (HMAC) when prompted
+
+**Step 2: Configure Credentials**
+```bash
+# Copy the example environment file
+cp .env.example .env
+
+# Edit .env file with your API credentials
+# BINANCE_API_KEY=your_actual_api_key_here
+# BINANCE_API_SECRET=your_actual_api_secret_here
+```
+
+**Step 3: Test Configuration**
+```bash
+# Test that configuration loads correctly
+python3 -c "
+import sys
+sys.path.insert(0, 'src')
+from src.core.config import load_configuration
+config = load_configuration()
+print(f'✅ Environment: {config.environment}')
+print(f'✅ API Keys: {\"Configured\" if config.binance_api_key else \"Missing\"}')
+print(f'✅ Trading Pairs: {len(config.default_trading_pairs)} configured')
+"
+```
+
+### Development Commands
+
+```bash
+# Format code
+uv run black src tests
+
+# Lint code  
+uv run ruff check src tests
+
+# Type checking
+uv run mypy src
+
+# Run tests
+uv run pytest
+
+# Or use traditional pip commands
+python3 -m black src tests
+python3 -m pytest
 ```
 
 ## Project Status
