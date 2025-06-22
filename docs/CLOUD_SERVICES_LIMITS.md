@@ -60,26 +60,32 @@ This document tracks all cloud service usage limits for the Helios Trading Bot t
 - **Usage %**: ~20% storage, ~20% bandwidth
 - **Monitor**: Memory usage, bandwidth consumption
 
-### **3. Cloudflare R2** (Pending Setup)
+### **3. Cloudflare R2** (Setup in Progress)
 - **Plan**: Free Tier
 - **Bucket**: `helios-trading-datalake` (to be created)
 - **Region**: Global (Auto-optimized)
 - **Limits**:
   ```
   Storage: 10 GB/month
-  Class A Operations: 1M/month (writes)
-  Class B Operations: 10M/month (reads)
-  Data Transfer: 10 GB/month egress
+  Class A Operations: 1M/month (PutObject, ListObjects, etc.)
+  Class B Operations: 10M/month (GetObject, HeadObject, etc.)
+  Data Transfer: FREE (unlimited egress)
+  ```
+- **Operation Types**:
+  ```
+  Class A (expensive): PutObject, CopyObject, ListObjects
+  Class B (cheaper): GetObject, HeadObject, UsageSummary
+  Free Operations: DeleteObject, DeleteBucket
   ```
 - **Estimated Usage**:
   ```
   Storage: ~2GB/month (historical parquet files)
-  Writes: ~50K/month (daily data uploads)
-  Reads: ~200K/month (backtesting queries)
-  Transfer: ~1GB/month (data downloads)
+  Class A: ~100/month (daily data uploads)
+  Class B: ~5K/month (backtesting queries)
+  Transfer: ~1GB/month (FREE egress)
   ```
-- **Usage %**: ~20% storage, ~5% operations
-- **Monitor**: Storage accumulation, operation counts
+- **Usage %**: ~20% storage, ~0.01% Class A, ~0.05% Class B
+- **Monitor**: Storage accumulation, operation counts (very low usage)
 
 ---
 
@@ -128,7 +134,8 @@ WARNING_THRESHOLDS = {
     "upstash_memory": "200MB (78% of 256MB limit)",
     "upstash_bandwidth": "8GB (80% of 10GB/month)",
     "r2_storage": "8GB (80% of 10GB/month)",
-    "r2_operations": "800K writes (80% of 1M/month)"
+    "r2_class_a_ops": "800K writes (80% of 1M/month)",
+    "r2_class_b_ops": "8M reads (80% of 10M/month)"
 }
 ```
 
