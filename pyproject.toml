@@ -34,29 +34,27 @@ dependencies = [
     # Cryptocurrency Trading APIs
     "python-binance>=1.0.17",
     "ccxt>=4.1.0",
-    
     # Data Analysis and Processing
     "pandas>=1.5.3",
     "numpy>=1.24.0",
     "ta>=0.10.2",
-    
+    "polars>=0.20.0",
+    # Database and Storage
+    "asyncpg>=0.29.0", # PostgreSQL async driver
+    "redis>=5.0.0", # Redis async client
+    "boto3>=1.34.0", # AWS/R2 S3-compatible client
     # API and Web
     "requests>=2.28.0",
     "aiohttp>=3.8.0",
     "websockets>=11.0.0",
-    
     # Configuration and Environment
     "python-dotenv>=1.0.0",
-    
     # Logging and Monitoring
     "loguru>=0.7.0",
-    
     # Mathematical Operations
     "scipy>=1.10.0",
-    
     # Date and Time
     "python-dateutil>=2.8.0",
-    
     # Async Support
     "asyncio-throttle>=1.0.2",
 ]
@@ -117,6 +115,8 @@ helios = "src.main:main"
 helios-backtest = "src.backtest.main:main"
 helios-setup = "scripts.setup_dev_environment:main"
 helios-test = "scripts.test_environment:main"
+helios-setup-phase13 = "scripts.setup_phase_1_3:main"
+helios-test-pipeline = "scripts.test_data_pipeline:run"
 
 # Tool Configuration
 [tool.black]

@@ -21,6 +21,12 @@ from pathlib import Path
 import json
 from datetime import datetime
 
+try:
+    from dotenv import load_dotenv
+    DOTENV_AVAILABLE = True
+except ImportError:
+    DOTENV_AVAILABLE = False
+
 # Configure logging for this module
 logger = logging.getLogger(__name__)
 
@@ -39,6 +45,14 @@ class TradingConfig:
     binance_api_secret: str = field(default="", repr=False)  # Hidden from repr for security
     binance_testnet: bool = field(default=True)
     
+    # Data Pipeline Configuration (Phase 1.3)
+    neon_database_url: str = field(default="", repr=False)  # PostgreSQL connection
+    upstash_redis_url: str = field(default="", repr=False)  # Redis connection
+    r2_account_id: str = field(default="", repr=False)  # Cloudflare R2 account
+    r2_api_token: str = field(default="", repr=False)  # Cloudflare R2 token
+    r2_bucket_name: str = field(default="", repr=False)  # R2 bucket name
+    r2_endpoint: str = field(default="", repr=False)  # R2 endpoint URL
+    
     # Environment Settings
     environment: str = field(default="development")  # development, testnet, production
     log_level: str = field(default="INFO")
@@ -48,7 +62,11 @@ class TradingConfig:
     default_trading_pairs: list = field(default_factory=lambda: [
         "SOLUSDT", "AVAXUSDT", "LINKUSDT", "DOTUSDT", "ADAUSDT"
     ])
+    trading_symbols: list = field(default_factory=lambda: [
+        "BTCUSDT", "ETHUSDT", "SOLUSDT", "AVAXUSDT", "LINKUSDT"
+    ])
     max_concurrent_trades: int = field(default=5)
+    polling_interval_seconds: int = field(default=30)
     
     # Risk Management
     max_position_size_usd: Decimal = field(default=Decimal("100.00"))
@@ -87,6 +105,30 @@ class TradingConfig:
             self._validation_errors.append("BINANCE_API_SECRET is required")
         elif len(self.binance_api_secret) < 32:
             self._validation_errors.append("BINANCE_API_SECRET appears invalid (too short)")
+        
+        # Data Pipeline Validation (Phase 1.3)
+        if not self.neon_database_url:
+            self._validation_errors.append("NEON_DATABASE_URL is required")
+        elif not self.neon_database_url.startswith('postgresql://'):
+            self._validation_errors.append("NEON_DATABASE_URL must be a valid PostgreSQL URL")
+            
+        if not self.upstash_redis_url:
+            self._validation_errors.append("UPSTASH_REDIS_URL is required")
+        elif not self.upstash_redis_url.startswith('redis://'):
+            self._validation_errors.append("UPSTASH_REDIS_URL must be a valid Redis URL")
+            
+        if not self.r2_account_id:
+            self._validation_errors.append("R2_ACCOUNT_ID is required")
+        elif len(self.r2_account_id) < 32:
+            self._validation_errors.append("R2_ACCOUNT_ID appears invalid (too short)")
+            
+        if not self.r2_api_token:
+            self._validation_errors.append("R2_API_TOKEN is required")
+        elif len(self.r2_api_token) < 32:
+            self._validation_errors.append("R2_API_TOKEN appears invalid (too short)")
+            
+        if not self.r2_bucket_name:
+            self._validation_errors.append("R2_BUCKET_NAME is required")
         
         # Environment Validation
         valid_environments = ["development", "testnet", "production"]
@@ -177,15 +219,33 @@ class ConfigurationManager:
         Expected environment variables:
         - BINANCE_API_KEY: Binance API key
         - BINANCE_API_SECRET: Binance API secret
+        - NEON_DATABASE_URL: PostgreSQL connection URL
+        - UPSTASH_REDIS_URL: Redis connection URL
+        - R2_ACCOUNT_ID: Cloudflare R2 account ID
+        - R2_API_TOKEN: Cloudflare R2 API token
+        - R2_BUCKET_NAME: Cloudflare R2 bucket name
         - BINANCE_TESTNET: true/false for testnet usage
         - TRADING_ENVIRONMENT: development/testnet/production
         - LOG_LEVEL: DEBUG/INFO/WARNING/ERROR
         """
         logger.info("Loading configuration from environment variables")
         
+        # Auto-load .env file if available
+        if DOTENV_AVAILABLE and os.path.exists('.env'):
+            logger.info("Loading .env file")
+            load_dotenv()
+        
         # Load API credentials (required)
         api_key = os.getenv("BINANCE_API_KEY", "").strip()
         api_secret = os.getenv("BINANCE_API_SECRET", "").strip()
+        
+        # Load data pipeline credentials (Phase 1.3)
+        neon_db_url = os.getenv("NEON_DATABASE_URL", "").strip()
+        redis_url = os.getenv("UPSTASH_REDIS_URL", "").strip()
+        r2_account = os.getenv("R2_ACCOUNT_ID", "").strip()
+        r2_token = os.getenv("R2_API_TOKEN", "").strip()
+        r2_bucket = os.getenv("R2_BUCKET_NAME", "").strip()
+        r2_endpoint = os.getenv("R2_ENDPOINT", "").strip()
         
         # Load environment settings
         use_testnet = os.getenv("BINANCE_TESTNET", "true").lower() == "true"
@@ -200,6 +260,12 @@ class ConfigurationManager:
             binance_api_key=api_key,
             binance_api_secret=api_secret,
             binance_testnet=use_testnet,
+            neon_database_url=neon_db_url,
+            upstash_redis_url=redis_url,
+            r2_account_id=r2_account,
+            r2_api_token=r2_token,
+            r2_bucket_name=r2_bucket,
+            r2_endpoint=r2_endpoint,
             environment=environment,
             log_level=log_level,
             data_directory=data_dir
