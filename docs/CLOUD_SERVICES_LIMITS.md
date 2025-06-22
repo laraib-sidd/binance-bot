@@ -42,7 +42,14 @@ This document tracks all cloud service usage limits for the Helios Trading Bot t
   Max Monthly Bandwidth: 10 GB
   Commands: Unlimited (free tier)
   Connections: 100 concurrent
-  Eviction: Enabled (allkeys-lru)
+  Eviction: Enabled (optimistic-volatile)
+  ```
+- **Eviction Policy Notes**:
+  ```
+  optimistic-volatile = volatile-random + allkeys-random
+  - Prioritizes removing keys with TTL/expiration first
+  - Falls back to random removal when memory full
+  - Strategy: Set appropriate TTLs on all trading data
   ```
 - **Estimated Usage**:
   ```
@@ -150,9 +157,10 @@ MITIGATION_ACTIONS = {
         "Cache frequent queries in Redis"
     ],
     "upstash_memory_high": [
-        "Reduce TTL values",
-        "Remove old cache entries",
-        "Optimize data structures"
+        "Set appropriate TTLs on all keys (optimistic-volatile priority)",
+        "Reduce TTL values for less critical data",
+        "Remove old cache entries manually",
+        "Optimize data structures and payload sizes"
     ],
     "upstash_bandwidth_high": [
         "Reduce API polling frequency",
