@@ -19,16 +19,21 @@ import asyncio
 from pathlib import Path
 import sys
 
-# Add project root to Python path
-project_root = Path(__file__).parent.parent
+# Add project root to Python path BEFORE local imports
+project_root = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 from src.api.binance_client import BinanceClient
 from src.core.config import load_configuration
+from src.utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 async def main():
-    """Test API connection with user's credentials."""
+    """
+    Test the connection to the Binance API and fetch server time and account info.
+    """
     print("🚀 Helios Trading Bot - API Connection Test")
     print("=" * 50)
 
