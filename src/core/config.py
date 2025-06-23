@@ -62,6 +62,8 @@ class TradingConfig:
     # Cloudflare R2 Configuration - Individual Parameters
     r2_account_id: str = field(default="", repr=False)
     r2_api_token: str = field(default="", repr=False)
+    r2_access_key: str = field(default="", repr=False)  # S3-style access key
+    r2_secret_key: str = field(default="", repr=False)  # S3-style secret key
     r2_bucket_name: str = field(default="", repr=False)
     r2_endpoint: str = field(default="", repr=False)
     r2_region: str = field(default="auto")
@@ -166,10 +168,15 @@ class TradingConfig:
             self._validation_errors.append("R2_ACCOUNT_ID is required")
         elif len(self.r2_account_id) < 32:
             self._validation_errors.append("R2_ACCOUNT_ID appears invalid (too short)")
-            
-        if not self.r2_api_token:
-            self._validation_errors.append("R2_API_TOKEN is required")
-        elif len(self.r2_api_token) < 32:
+        
+        # Check for either API token or access key/secret key pair
+        has_api_token = bool(self.r2_api_token and len(self.r2_api_token) >= 32)
+        has_access_keys = bool(self.r2_access_key and self.r2_secret_key)
+        
+        if not (has_api_token or has_access_keys):
+            self._validation_errors.append("R2 authentication required: either R2_API_TOKEN or R2_ACCESS_KEY+R2_SECRET_KEY")
+        
+        if self.r2_api_token and len(self.r2_api_token) < 32:
             self._validation_errors.append("R2_API_TOKEN appears invalid (too short)")
             
         if not self.r2_bucket_name:
@@ -243,6 +250,8 @@ class TradingConfig:
         return {
             "account_id": self.r2_account_id,
             "api_token": self.r2_api_token,
+            "access_key": self.r2_access_key,
+            "secret_key": self.r2_secret_key,
             "bucket_name": self.r2_bucket_name,
             "endpoint": self.r2_endpoint,
             "region": self.r2_region
@@ -268,7 +277,8 @@ class TradingConfig:
             "api_keys_configured": bool(self.binance_api_key and self.binance_api_secret),
             "database_configured": bool(self.neon_host and self.neon_database),
             "redis_configured": bool(self.upstash_redis_host and self.upstash_redis_password),
-            "r2_configured": bool(self.r2_account_id and self.r2_api_token and self.r2_bucket_name)
+            "r2_configured": bool(self.r2_account_id and self.r2_bucket_name and 
+                                (self.r2_api_token or (self.r2_access_key and self.r2_secret_key)))
         }
     
     def save_config_summary(self, filepath: str) -> None:
@@ -315,6 +325,8 @@ class ConfigurationManager:
         - UPSTASH_REDIS_PASSWORD: Redis password
         - R2_ACCOUNT_ID: Cloudflare R2 account ID
         - R2_API_TOKEN: Cloudflare R2 API token
+        - R2_ACCESS_KEY: Cloudflare R2 S3-style access key (alternative to API token)
+        - R2_SECRET_KEY: Cloudflare R2 S3-style secret key (alternative to API token)
         - R2_BUCKET_NAME: Cloudflare R2 bucket name
         - R2_ENDPOINT: Cloudflare R2 endpoint URL
         - R2_REGION: Cloudflare R2 region (default: auto)
@@ -350,6 +362,8 @@ class ConfigurationManager:
         # Load Cloudflare R2 credentials - Individual parameters
         r2_account = os.getenv("R2_ACCOUNT_ID", "").strip()
         r2_token = os.getenv("R2_API_TOKEN", "").strip()
+        r2_access_key = os.getenv("R2_ACCESS_KEY", "").strip()
+        r2_secret_key = os.getenv("R2_SECRET_KEY", "").strip()
         r2_bucket = os.getenv("R2_BUCKET_NAME", "").strip()
         r2_endpoint = os.getenv("R2_ENDPOINT", "").strip()
         r2_region = os.getenv("R2_REGION", "auto").strip()
@@ -379,6 +393,8 @@ class ConfigurationManager:
             upstash_redis_password=redis_password,
             r2_account_id=r2_account,
             r2_api_token=r2_token,
+            r2_access_key=r2_access_key,
+            r2_secret_key=r2_secret_key,
             r2_bucket_name=r2_bucket,
             r2_endpoint=r2_endpoint,
             r2_region=r2_region,
