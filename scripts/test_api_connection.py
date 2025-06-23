@@ -1,31 +1,19 @@
-#!/usr/bin/env python3
-"""
-Helios Trading Bot - API Connection Test Script
-
-Simple script to test Binance API connectivity with your testnet credentials.
-This script will verify that your API keys work and the connection is successful.
-
-Usage:
-    uv run python scripts/test_api_connection.py
-    # OR
-    python scripts/test_api_connection.py
-
-Requirements:
-    - Valid testnet API keys in .env file
-    - Internet connection
-"""
-
 import asyncio
 from pathlib import Path
 import sys
 
-# Add project root to Python path BEFORE local imports
+# Add project root to Python path
 project_root = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from src.api.binance_client import BinanceClient
-from src.core.config import load_configuration
-from src.utils.logging import get_logger
+try:
+    from src.api.binance_client import BinanceClient
+    from src.core.config import load_configuration
+    from src.utils.logging import get_logger
+finally:
+    # Clean up the path modification
+    sys.path.pop(0)
+
 
 logger = get_logger(__name__)
 

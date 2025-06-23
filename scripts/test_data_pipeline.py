@@ -28,16 +28,20 @@ import sys
 import time
 from typing import Dict
 
-# Add project root to Python path BEFORE local imports
+# Add project root to Python path
 project_root = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from src.api.models import TickerData
-from src.core.config import get_config, load_configuration
-from src.data.connection_managers import ConnectionManager
-from src.data.database_schema import DatabaseSchema, initialize_database
-from src.data.market_data_pipeline import MarketDataPipeline
-from src.utils.logging import get_logger
+try:
+    from src.api.models import TickerData
+    from src.core.config import get_config, load_configuration
+    from src.data.connection_managers import ConnectionManager
+    from src.data.database_schema import DatabaseSchema, initialize_database
+    from src.data.market_data_pipeline import MarketDataPipeline
+    from src.utils.logging import get_logger
+finally:
+    # Clean up the path modification
+    sys.path.pop(0)
 
 logger = get_logger(__name__)
 

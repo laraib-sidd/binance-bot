@@ -15,17 +15,20 @@ from unittest.mock import patch
 import pytest
 
 # Add project root to Python path
-project_root = Path(__file__).parent.parent
+project_root = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from src.core.config import (
-    ConfigurationManager,
-    TradingConfig,
-    config_manager,
-    get_config,
-    load_configuration,
-    validate_configuration,
-)
+try:
+    from src.core.config import (
+        ConfigurationManager,
+        TradingConfig,
+        config_manager,
+        get_config,
+        load_configuration,
+        validate_configuration,
+    )
+finally:
+    sys.path.pop(0)
 
 
 class TestTradingConfig:
