@@ -106,4 +106,4 @@ pip install -e .
 pip install -e .[dev]
 ```
 
-The setup scripts automatically detect which package manager you have available and use the fastest one. 
+The setup scripts automatically detect which package manager you have available and use the fastest one.

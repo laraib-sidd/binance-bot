@@ -1,1 +1,1 @@
-"""Helios Trading Bot - Scripts package""" 
+"""Helios Trading Bot - Scripts package"""

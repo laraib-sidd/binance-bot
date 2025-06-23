@@ -9,7 +9,7 @@ This repository contains the design and implementation plan for **Helios**, an a
 This project emerged from a comprehensive analysis of trading bot strategies and requirements. Key highlights:
 
 - **Goal**: Build a profitable crypto trading bot for aggressive growth (30-40% monthly returns target)
-- **Capital**: Starting with $700 
+- **Capital**: Starting with $700
 - **Experience Level**: Intermediate trader with Python/Data Engineering background
 - **Strategy**: Custom hybrid approach combining signal analysis with dynamic grid trading
 - **Market Focus**: High-volume altcoins for maximum volatility and profit potential
@@ -99,7 +99,7 @@ print(f'✅ Trading Pairs: {len(config.default_trading_pairs)} configured')
 # Format code
 uv run black src tests
 
-# Lint code  
+# Lint code
 uv run ruff check src tests
 
 # Type checking
@@ -116,7 +116,7 @@ python3 -m pytest
 ## Project Status
 
 - [x] Requirements Analysis Complete
-- [x] Strategy Design Finalized  
+- [x] Strategy Design Finalized
 - [x] Technical Architecture Defined
 - [ ] Phase 1: Setup & Connection
 - [ ] Phase 2: Data Engine & Signal Generation

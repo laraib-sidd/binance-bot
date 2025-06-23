@@ -96,7 +96,7 @@ EOF
 # Verify .env is in .gitignore
 grep -q "^\.env$" .gitignore && echo "✅ .env properly ignored" || echo "❌ Add .env to .gitignore"
 
-# Verify config.py is in .gitignore  
+# Verify config.py is in .gitignore
 grep -q "^config\.py$" .gitignore && echo "✅ config.py properly ignored" || echo "❌ Add config.py to .gitignore"
 ```
 
@@ -169,10 +169,10 @@ def test_python_version():
 def test_required_packages():
     """Test that required packages are installed"""
     required_packages = [
-        'pandas', 'numpy', 'pandas_ta', 'aiohttp', 
+        'pandas', 'numpy', 'pandas_ta', 'aiohttp',
         'python-binance', 'sqlalchemy', 'pytest'
     ]
-    
+
     missing_packages = []
     for package in required_packages:
         try:
@@ -181,7 +181,7 @@ def test_required_packages():
         except ImportError:
             print(f"❌ {package} - Missing")
             missing_packages.append(package)
-    
+
     return len(missing_packages) == 0
 
 def test_environment_file():
@@ -198,7 +198,7 @@ def test_project_structure():
     """Test project directory structure"""
     required_dirs = ['src', 'tests', 'local', 'docs']
     all_exist = True
-    
+
     for dir_name in required_dirs:
         dir_path = Path(dir_name)
         if dir_path.exists():
@@ -206,32 +206,32 @@ def test_project_structure():
         else:
             print(f"❌ {dir_name}/ directory missing")
             all_exist = False
-    
+
     return all_exist
 
 def main():
     """Run all environment tests"""
     print("🔍 Helios Trading Bot - Environment Setup Verification\n")
-    
+
     tests = [
         ("Python Version", test_python_version),
         ("Required Packages", test_required_packages),
         ("Environment File", test_environment_file),
         ("Project Structure", test_project_structure)
     ]
-    
+
     all_passed = True
     for test_name, test_func in tests:
         print(f"\n🧪 Testing {test_name}:")
         if not test_func():
             all_passed = False
-    
+
     print("\n" + "="*50)
     if all_passed:
         print("🎉 Environment setup complete! Ready for development.")
     else:
         print("⚠️ Environment setup incomplete. Please fix the issues above.")
-    
+
     return all_passed
 
 if __name__ == "__main__":
@@ -258,27 +258,27 @@ from dotenv import load_dotenv
 def test_api_connection():
     """Test basic API connection"""
     load_dotenv()
-    
+
     api_key = os.getenv('BINANCE_API_KEY')
     api_secret = os.getenv('BINANCE_API_SECRET')
-    
+
     if not api_key or not api_secret:
         print("❌ API credentials not found in environment")
         return False
-    
+
     try:
         from binance.client import Client
-        
+
         # Create testnet client
         client = Client(api_key, api_secret, testnet=True)
-        
+
         # Test connection
         account_info = client.get_account()
         print(f"✅ API connection successful")
         print(f"📊 Account status: {account_info.get('accountType', 'Unknown')}")
-        
+
         return True
-        
+
     except Exception as e:
         print(f"❌ API connection failed: {e}")
         return False
@@ -387,4 +387,4 @@ If you encounter issues:
 
 ---
 
-**Environment setup is the foundation of successful development. Take time to get it right!** 
+**Environment setup is the foundation of successful development. Take time to get it right!**

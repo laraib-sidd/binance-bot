@@ -1,6 +1,6 @@
 ---
-description: 
-globs: 
+description:
+globs:
 alwaysApply: false
 ---
 # Phased Development and User Testing Rules
@@ -26,7 +26,7 @@ graph TD
     F --> H[Code Review]
     H --> I[Merge to Main]
     I --> J[Update Documentation]
-    
+
     style A fill:#e1f5fe
     style D fill:#fff3e0
     style F fill:#e8f5e8
@@ -62,18 +62,18 @@ graph TD
 # Testing checklist for each phase
 class PhaseTestingChecklist:
     """Mandatory testing requirements for each development phase"""
-    
+
     def developer_testing(self):
         """Developer must complete before user testing"""
         return [
             "Unit tests written and passing",
-            "Integration tests passing", 
+            "Integration tests passing",
             "Code follows all style rules",
             "Documentation updated",
             "Security validation complete",
             "Error handling tested"
         ]
-    
+
     def user_testing(self):
         """User must validate before merge approval"""
         return [

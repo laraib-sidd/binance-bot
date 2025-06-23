@@ -115,4 +115,4 @@ The `.cursor/rules/009-git-branch-protection.mdc` rules are mandatory:
 
 ---
 
-**Remember**: The goal is not bureaucracy, but **financial safety** and **professional development standards** for a trading bot that handles real money. 
+**Remember**: The goal is not bureaucracy, but **financial safety** and **professional development standards** for a trading bot that handles real money.

@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - Current Development
 
-### 🔄 DATABASE ARCHITECTURE IMPROVEMENT - 2024-12-23 
+### 🔄 DATABASE ARCHITECTURE IMPROVEMENT - 2024-12-23
 - **Status**: ✅ **COMPLETE - Dedicated Schema & Enhanced Testing**
 - **Breaking Change**: Database now uses dedicated 'helios_trading' schema instead of 'public'
 - **User Action Required**: Run migration to create dedicated schema (automatic on next test)
@@ -55,7 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Impact: More flexible database configuration, easier credential management, better cloud deployment support
 
 ### 🎉 PHASE 1.1 COMPLETED - 2024-12-22
-- **Status**: ✅ **COMPLETE AND APPROVED** 
+- **Status**: ✅ **COMPLETE AND APPROVED**
 - **User Testing**: Successfully completed
 - **Environment Validation**: All tests passing (5/5)
 - **Security**: Testnet API keys configured, real account secured
@@ -359,4 +359,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-**Note**: This changelog follows the mandatory change tracking rules defined in `.cursor/rules/008-change-tracking-mandatory.mdc` 
+**Note**: This changelog follows the mandatory change tracking rules defined in `.cursor/rules/008-change-tracking-mandatory.mdc`
+
+## [Unreleased] - Current Development
+
+### Added
+- **Automated Tooling**: Configured `pre-commit` hooks with `black` for automated code formatting and `ruff` for high-performance linting to enforce code quality standards automatically.
+- **Centralized Constants**: Introduced a constants module to manage database table names, Redis key prefixes, and other magic strings, improving maintainability and reducing errors.
+
+### Changed
+- **Performance**: Refactored the historical data storage method (`_store_ohlcv_data`) to use a single, efficient batch `executemany` operation, drastically reducing database round-trips when ingesting large datasets.
+- **Testing**: Overhauled integration tests by mocking the `BinanceClient`. This makes the test suite significantly faster, completely reliable, and independent of network conditions or API keys.
+- **Architecture**: Resolved a circular dependency between `MarketDataPipeline` and the `ConnectionManager` by refactoring the application lifecycle management.
+
+### Fixed
+- N/A (as of the start of this phase)
+
+### Removed
+- N/A (as of the start of this phase)
+
+## [1.4.0] - 2024-08-01 - Signal Generation Engine
+// ... existing code ...

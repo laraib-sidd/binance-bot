@@ -13,7 +13,7 @@ This document tracks all cloud service usage limits for the Helios Trading Bot t
 
 ### **1. Neon PostgreSQL**
 - **Plan**: Free Tier
-- **Database**: `helios_trading` 
+- **Database**: `helios_trading`
 - **Region**: Asia-Pacific Southeast (Singapore)
 - **Limits**:
   ```
@@ -144,7 +144,7 @@ WARNING_THRESHOLDS = {
 CRITICAL_THRESHOLDS = {
     "neon_storage": "9.5GB (95% of limit)",
     "neon_compute": "95 hours (95% of limit)",
-    "upstash_memory": "240MB (94% of limit)", 
+    "upstash_memory": "240MB (94% of limit)",
     "upstash_bandwidth": "9.5GB (95% of limit)",
     "r2_storage": "9.5GB (95% of limit)"
 }
@@ -159,7 +159,7 @@ MITIGATION_ACTIONS = {
         "Remove duplicate records"
     ],
     "neon_compute_high": [
-        "Optimize query efficiency", 
+        "Optimize query efficiency",
         "Reduce connection pool size",
         "Cache frequent queries in Redis"
     ],
@@ -185,7 +185,7 @@ MITIGATION_ACTIONS = {
 ```python
 COST_BREAKDOWN = {
     "neon_postgresql": "$0.00 (Free tier)",
-    "upstash_redis": "$0.00 (Free tier)", 
+    "upstash_redis": "$0.00 (Free tier)",
     "cloudflare_r2": "$0.00 (Free tier)",
     "total_monthly": "$0.00"
 }
@@ -211,16 +211,16 @@ UPGRADE_COSTS = {
 class UsageMonitor:
     def check_neon_usage(self):
         """Query Neon API for storage/compute usage"""
-        
+
     def check_upstash_usage(self):
         """Query Upstash API for memory/bandwidth usage"""
-        
+
     def check_r2_usage(self):
         """Query Cloudflare API for storage/operations usage"""
-        
+
     def generate_usage_report(self):
         """Generate daily usage report"""
-        
+
     def check_thresholds(self):
         """Alert if approaching limits"""
 ```
@@ -281,11 +281,11 @@ UPGRADE_PRIORITY = [
 ### **Usage Notes**
 ```
 Week 1: Initial setup and basic data pipeline
-Week 2: Add real-time market data ingestion  
+Week 2: Add real-time market data ingestion
 Week 3: Implement trading strategies
 Week 4: Full production deployment
 ```
 
 ---
 
-**🔄 This document will be updated weekly with actual usage metrics and optimization actions.** 
+**🔄 This document will be updated weekly with actual usage metrics and optimization actions.**
