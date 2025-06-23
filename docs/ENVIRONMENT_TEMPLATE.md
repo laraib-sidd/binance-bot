@@ -1,77 +1,131 @@
-# Environment Variables Template
+# Environment Configuration Template
 
-## 📝 **Create .env File**
+Copy the content below to create your `.env` file in the project root directory.
 
-Copy the following template to create your `.env` file in the project root:
+**IMPORTANT**: Never commit `.env` to version control! It's already in `.gitignore`.
 
-```env
-# Helios Trading Bot - Environment Variables
-# Copy this to .env and fill in your actual credentials
+## Basic .env File Structure
 
-# =====================================
-# Binance API Credentials (Testnet)
-# =====================================
-BINANCE_API_KEY=your_binance_testnet_api_key
-BINANCE_SECRET_KEY=your_binance_testnet_secret_key
-BINANCE_TESTNET=True
+```bash
+# Helios Trading Bot - Environment Configuration
+# IMPORTANT: Never commit .env to version control!
 
-# =====================================
-# Neon PostgreSQL (Singapore)
-# =====================================
-NEON_DATABASE_URL=postgresql://helios_trading_owner:your_password@ep-your-endpoint.ap-southeast-1.aws.neon.tech/helios_trading?sslmode=require
+# =============================================================================
+# BINANCE API CONFIGURATION (REQUIRED)
+# =============================================================================
+# Get these from your Binance account (use testnet for development)
+BINANCE_API_KEY=your_binance_api_key_here
+BINANCE_API_SECRET=your_binance_api_secret_here
+BINANCE_TESTNET=true
 
-# =====================================
-# Upstash Redis (Singapore)  
-# =====================================
-UPSTASH_REDIS_URL=redis://default:your_password@your-redis-host.upstash.io:6379
-UPSTASH_REDIS_HOST=your-redis-host.upstash.io
-UPSTASH_REDIS_PORT=6379
-UPSTASH_REDIS_PASSWORD=your_upstash_password
+# =============================================================================
+# DATABASE CONFIGURATION (REQUIRED - Choose one option)
+# =============================================================================
 
-# =====================================
-# Cloudflare R2 (Global)
-# =====================================
-R2_ACCOUNT_ID=your_account_id_from_r2_dashboard
-R2_API_TOKEN=your_cloudflare_r2_api_token
-R2_BUCKET_NAME=helios-trading-datalake
-R2_ENDPOINT=https://your_account_id.r2.cloudflarestorage.com
-R2_REGION=auto
+# OPTION 1: Full Connection URL (if you have a single connection string)
+# NEON_DATABASE_URL=postgresql://username:password@hostname:5432/database_name
 
-# =====================================
-# Trading Bot Configuration
-# =====================================
-ENVIRONMENT=development
+# OPTION 2: Individual Components (if you have separate host, db, user, password)
+DB_HOST=your_database_host
+DB_DATABASE=your_database_name  
+DB_USER=your_database_user
+DB_PASSWORD=your_database_password
+DB_PORT=5432
+
+# =============================================================================
+# OPTIONAL CLOUD SERVICES (Phase 1.3 - can be added later)
+# =============================================================================
+
+# Redis Cache (Optional - for caching market data)
+# UPSTASH_REDIS_URL=redis://username:password@hostname:port
+
+# Cloudflare R2 Storage (Optional - for data archiving)
+# R2_ACCOUNT_ID=your_r2_account_id
+# R2_API_TOKEN=your_r2_api_token  
+# R2_BUCKET_NAME=your_r2_bucket_name
+# R2_ENDPOINT=https://your-account-id.r2.cloudflarestorage.com
+
+# =============================================================================
+# TRADING ENVIRONMENT SETTINGS
+# =============================================================================
+TRADING_ENVIRONMENT=development
 LOG_LEVEL=INFO
-TRADING_MODE=paper
-MAX_POSITION_SIZE=100.00
-RISK_PERCENTAGE=1.0
-
-# =====================================
-# Data Pipeline Settings
-# =====================================
 DATA_DIRECTORY=local/data
-CACHE_TTL_SECONDS=300
-BATCH_SIZE=1000
-POLLING_INTERVAL_SECONDS=60
+
+# =============================================================================
+# NOTIFICATION SETTINGS (Optional)
+# =============================================================================
+# Telegram notifications (Optional)
+# TELEGRAM_BOT_TOKEN=your_telegram_bot_token
+# TELEGRAM_CHAT_ID=your_telegram_chat_id
+
+# Discord notifications (Optional)  
+# DISCORD_WEBHOOK_URL=your_discord_webhook_url
+
+# =============================================================================
+# TRADING PARAMETERS (Optional - uses defaults if not set)
+# =============================================================================
+# MAX_POSITION_SIZE_USD=100.00
+# MAX_DAILY_LOSS_USD=50.00
+# MAX_ACCOUNT_DRAWDOWN_PERCENT=25.00
+# GRID_LEVELS=10
+# GRID_SPACING_PERCENT=1.0
+# SIGNAL_CHECK_INTERVAL_SECONDS=30
+# PRICE_UPDATE_INTERVAL_SECONDS=5
 ```
 
-## 🔒 **Security Notes**
+## Configuration Options Explained
 
-1. **Never commit .env to git** - it's already in .gitignore
-2. **Use strong passwords** for all services
-3. **Testnet only** for development (BINANCE_TESTNET=True)
-4. **Secure credential sharing** when providing to development team
+### Database Configuration
 
-## 📋 **Credential Checklist**
+You can configure the database connection in two ways:
 
-- [ ] **Neon PostgreSQL**: Connection URL from dashboard
-- [ ] **Upstash Redis**: Redis URL and REST URL from dashboard  
-- [ ] **Cloudflare R2**: Account ID, Access Key, Secret Key from API tokens
-- [ ] **Binance API**: Testnet API key and secret (if not already configured)
+#### Option 1: Full Connection URL
+If you have a complete PostgreSQL connection string:
+```bash
+NEON_DATABASE_URL=postgresql://username:password@hostname:5432/database_name
+```
 
-## 🎯 **Next Steps**
+#### Option 2: Individual Components  
+If you have separate database parameters:
+```bash
+DB_HOST=your_database_host
+DB_DATABASE=your_database_name  
+DB_USER=your_database_user
+DB_PASSWORD=your_database_password
+DB_PORT=5432
+```
 
-1. **Create .env file** in project root using this template
-2. **Fill in actual credentials** from each service dashboard
-3. **Test connections** with provided scripts
-4. **Start Phase 1.3 development** once all credentials verified 
+The setup script will automatically build the connection URL from individual components.
+
+### Required vs Optional Variables
+
+**Required for Phase 1.3:**
+- Binance API credentials (`BINANCE_API_KEY`, `BINANCE_API_SECRET`)  
+- Database connection (either full URL or individual components)
+
+**Optional (can be added later):**
+- Redis cache for performance optimization
+- Cloudflare R2 for data archiving
+- Notification services (Telegram, Discord)
+- Custom trading parameters (uses sensible defaults)
+
+## Setup Instructions
+
+1. **Create your .env file:**
+   ```bash
+   cp docs/ENVIRONMENT_TEMPLATE.md .env
+   # Edit .env and replace all placeholder values
+   ```
+
+2. **Fill in your actual values:**
+   - Replace `your_binance_api_key_here` with your actual Binance API key
+   - Replace database placeholders with your actual database credentials
+   - Add optional services as needed
+
+3. **Verify configuration:**
+   ```bash
+   uv run python -m scripts.setup_phase_1_3
+   ```
+
+The setup script will now work with either database configuration method and only require the essential components for Phase 1.3 to function. 

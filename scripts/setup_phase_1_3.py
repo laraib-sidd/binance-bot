@@ -138,26 +138,64 @@ def check_environment_variables() -> bool:
                     key, value = line.split('=', 1)
                     os.environ[key.strip()] = value.strip().strip('"').strip("'")
     
-    required_vars = [
-        'NEON_DATABASE_URL',
-        'UPSTASH_REDIS_URL', 
-        'R2_ACCOUNT_ID',
-        'R2_API_TOKEN',
-        'R2_BUCKET_NAME'
+    # Check database connection - either full URL or individual components
+    database_configured = False
+    
+    # Option 1: Single connection URL
+    if os.getenv('NEON_DATABASE_URL'):
+        print_status("Database URL found (NEON_DATABASE_URL)", "info")
+        database_configured = True
+    
+    # Option 2: Individual components
+    db_components = [
+        'DB_HOST', 'DB_DATABASE', 'DB_USER', 'DB_PASSWORD'
     ]
+    if all(os.getenv(var) for var in db_components):
+        print_status("Database components found (DB_HOST, DB_DATABASE, DB_USER, DB_PASSWORD)", "info")
+        
+        # Build the connection URL from components
+        host = os.getenv('DB_HOST')
+        database = os.getenv('DB_DATABASE')
+        user = os.getenv('DB_USER')
+        password = os.getenv('DB_PASSWORD')
+        port = os.getenv('DB_PORT', '5432')
+        
+        neon_url = f"postgresql://{user}:{password}@{host}:{port}/{database}"
+        os.environ['NEON_DATABASE_URL'] = neon_url
+        print_status("Built NEON_DATABASE_URL from components", "success")
+        database_configured = True
     
-    missing_vars = []
-    for var in required_vars:
+    if not database_configured:
+        print_status("Database not configured. Need either:", "warning")
+        print_status("  - NEON_DATABASE_URL (full connection string)", "info")
+        print_status("  - DB_HOST, DB_DATABASE, DB_USER, DB_PASSWORD (individual components)", "info")
+    
+    # Optional cloud services (not required for basic functionality)
+    optional_vars = {
+        'UPSTASH_REDIS_URL': 'Redis cache (optional for Phase 1.3)',
+        'R2_ACCOUNT_ID': 'Cloudflare R2 storage (optional)',
+        'R2_API_TOKEN': 'Cloudflare R2 API token (optional)',
+        'R2_BUCKET_NAME': 'Cloudflare R2 bucket (optional)'
+    }
+    
+    missing_optional = []
+    for var, description in optional_vars.items():
         if not os.getenv(var):
-            missing_vars.append(var)
+            missing_optional.append(f"{var} - {description}")
     
-    if missing_vars:
-        print_status(f"Missing environment variables: {', '.join(missing_vars)}", "warning")
-        print_status("Please add them to your .env file before testing", "warning")
-        return False
-    else:
-        print_status("All required environment variables found", "success")
+    if missing_optional:
+        print_status("Optional services not configured:", "info")
+        for var_info in missing_optional:
+            print_status(f"  - {var_info}", "info")
+    
+    # For Phase 1.3, we only require database connection
+    if database_configured:
+        print_status("Required environment variables found", "success")
         return True
+    else:
+        print_status("Database configuration missing", "warning")
+        print_status("Please add database credentials to your .env file", "warning")
+        return False
 
 
 def main():
