@@ -106,8 +106,12 @@ class PipelineTestSuite:
             
             # Check required environment variables
             required_vars = [
-                ('neon_database_url', 'NEON_DATABASE_URL'),
-                ('upstash_redis_url', 'UPSTASH_REDIS_URL'),
+                        ('neon_host', 'NEON_HOST'),
+        ('neon_database', 'NEON_DATABASE'), 
+        ('neon_username', 'NEON_USERNAME'),
+        ('neon_password', 'NEON_PASSWORD'),
+        ('upstash_redis_host', 'UPSTASH_REDIS_HOST'),
+        ('upstash_redis_password', 'UPSTASH_REDIS_PASSWORD'),
                 ('r2_account_id', 'R2_ACCOUNT_ID'),
                 ('r2_api_token', 'R2_API_TOKEN'),
                 ('r2_bucket_name', 'R2_BUCKET_NAME')

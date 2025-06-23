@@ -618,8 +618,8 @@ def skip_if_no_credentials():
         config = get_config()
         
         if not all([
-            config.neon_database_url,
-            config.upstash_redis_url,
+            config.get_postgresql_url(),
+            config.get_redis_url(),
             config.r2_account_id,
             config.r2_api_token
         ]):

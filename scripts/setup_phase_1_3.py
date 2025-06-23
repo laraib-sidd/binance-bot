@@ -146,36 +146,27 @@ def check_environment_variables() -> bool:
         print_status("Database URL found (NEON_DATABASE_URL)", "info")
         database_configured = True
     
-    # Option 2: Individual components
+    # Option 2: Individual components (new approach)
     db_components = [
-        'DB_HOST', 'DB_DATABASE', 'DB_USER', 'DB_PASSWORD'
+        'NEON_HOST', 'NEON_DATABASE', 'NEON_USERNAME', 'NEON_PASSWORD'
     ]
     if all(os.getenv(var) for var in db_components):
-        print_status("Database components found (DB_HOST, DB_DATABASE, DB_USER, DB_PASSWORD)", "info")
-        
-        # Build the connection URL from components
-        host = os.getenv('DB_HOST')
-        database = os.getenv('DB_DATABASE')
-        user = os.getenv('DB_USER')
-        password = os.getenv('DB_PASSWORD')
-        port = os.getenv('DB_PORT', '5432')
-        
-        neon_url = f"postgresql://{user}:{password}@{host}:{port}/{database}"
-        os.environ['NEON_DATABASE_URL'] = neon_url
-        print_status("Built NEON_DATABASE_URL from components", "success")
+        print_status("Database components found (NEON_HOST, NEON_DATABASE, NEON_USERNAME, NEON_PASSWORD)", "info")
         database_configured = True
     
     if not database_configured:
         print_status("Database not configured. Need either:", "warning")
         print_status("  - NEON_DATABASE_URL (full connection string)", "info")
-        print_status("  - DB_HOST, DB_DATABASE, DB_USER, DB_PASSWORD (individual components)", "info")
+        print_status("  - NEON_HOST, NEON_DATABASE, NEON_USERNAME, NEON_PASSWORD (individual components)", "info")
     
     # Optional cloud services (not required for basic functionality)
     optional_vars = {
-        'UPSTASH_REDIS_URL': 'Redis cache (optional for Phase 1.3)',
+        'UPSTASH_REDIS_HOST': 'Redis host (optional for Phase 1.3)',
+        'UPSTASH_REDIS_PASSWORD': 'Redis password (optional for Phase 1.3)',
         'R2_ACCOUNT_ID': 'Cloudflare R2 storage (optional)',
         'R2_API_TOKEN': 'Cloudflare R2 API token (optional)',
-        'R2_BUCKET_NAME': 'Cloudflare R2 bucket (optional)'
+        'R2_BUCKET_NAME': 'Cloudflare R2 bucket (optional)',
+        'R2_ENDPOINT': 'Cloudflare R2 endpoint (optional)'
     }
     
     missing_optional = []

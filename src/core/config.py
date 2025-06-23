@@ -45,13 +45,26 @@ class TradingConfig:
     binance_api_secret: str = field(default="", repr=False)  # Hidden from repr for security
     binance_testnet: bool = field(default=True)
     
-    # Data Pipeline Configuration (Phase 1.3)
-    neon_database_url: str = field(default="", repr=False)  # PostgreSQL connection
-    upstash_redis_url: str = field(default="", repr=False)  # Redis connection
-    r2_account_id: str = field(default="", repr=False)  # Cloudflare R2 account
-    r2_api_token: str = field(default="", repr=False)  # Cloudflare R2 token
-    r2_bucket_name: str = field(default="", repr=False)  # R2 bucket name
-    r2_endpoint: str = field(default="", repr=False)  # R2 endpoint URL
+    # PostgreSQL Configuration (Neon) - Individual Parameters
+    neon_host: str = field(default="", repr=False)
+    neon_database: str = field(default="", repr=False)
+    neon_username: str = field(default="", repr=False)
+    neon_password: str = field(default="", repr=False)
+    neon_port: int = field(default=5432)
+    neon_ssl_mode: str = field(default="require")
+    
+    # Redis Configuration (Upstash) - Individual Parameters
+    upstash_redis_username: str = field(default="", repr=False)
+    upstash_redis_host: str = field(default="", repr=False)
+    upstash_redis_port: int = field(default=6379)
+    upstash_redis_password: str = field(default="", repr=False)
+    
+    # Cloudflare R2 Configuration - Individual Parameters
+    r2_account_id: str = field(default="", repr=False)
+    r2_api_token: str = field(default="", repr=False)
+    r2_bucket_name: str = field(default="", repr=False)
+    r2_endpoint: str = field(default="", repr=False)
+    r2_region: str = field(default="auto")
     
     # Environment Settings
     environment: str = field(default="development")  # development, testnet, production
@@ -106,17 +119,49 @@ class TradingConfig:
         elif len(self.binance_api_secret) < 32:
             self._validation_errors.append("BINANCE_API_SECRET appears invalid (too short)")
         
-        # Data Pipeline Validation (Phase 1.3)
-        if not self.neon_database_url:
-            self._validation_errors.append("NEON_DATABASE_URL is required")
-        elif not self.neon_database_url.startswith('postgresql://'):
-            self._validation_errors.append("NEON_DATABASE_URL must be a valid PostgreSQL URL")
+        # PostgreSQL (Neon) Validation - Individual Parameters
+        if not self.neon_host:
+            self._validation_errors.append("NEON_HOST is required")
+        elif not self.neon_host.strip():
+            self._validation_errors.append("NEON_HOST cannot be empty")
             
-        if not self.upstash_redis_url:
-            self._validation_errors.append("UPSTASH_REDIS_URL is required")
-        elif not self.upstash_redis_url.startswith('redis://'):
-            self._validation_errors.append("UPSTASH_REDIS_URL must be a valid Redis URL")
+        if not self.neon_database:
+            self._validation_errors.append("NEON_DATABASE is required")
+        elif not self.neon_database.strip():
+            self._validation_errors.append("NEON_DATABASE cannot be empty")
             
+        if not self.neon_username:
+            self._validation_errors.append("NEON_USERNAME is required")
+        elif not self.neon_username.strip():
+            self._validation_errors.append("NEON_USERNAME cannot be empty")
+            
+        if not self.neon_password:
+            self._validation_errors.append("NEON_PASSWORD is required")
+        elif len(self.neon_password) < 8:
+            self._validation_errors.append("NEON_PASSWORD appears too short (minimum 8 characters)")
+            
+        if not (1 <= self.neon_port <= 65535):
+            self._validation_errors.append("NEON_PORT must be between 1 and 65535")
+            
+        valid_ssl_modes = ["disable", "allow", "prefer", "require", "verify-ca", "verify-full"]
+        if self.neon_ssl_mode not in valid_ssl_modes:
+            self._validation_errors.append(f"NEON_SSL_MODE must be one of: {valid_ssl_modes}")
+        
+        # Redis (Upstash) Validation - Individual Parameters
+        if not self.upstash_redis_host:
+            self._validation_errors.append("UPSTASH_REDIS_HOST is required")
+        elif not self.upstash_redis_host.strip():
+            self._validation_errors.append("UPSTASH_REDIS_HOST cannot be empty")
+            
+        if not (1 <= self.upstash_redis_port <= 65535):
+            self._validation_errors.append("UPSTASH_REDIS_PORT must be between 1 and 65535")
+            
+        if not self.upstash_redis_password:
+            self._validation_errors.append("UPSTASH_REDIS_PASSWORD is required")
+        elif len(self.upstash_redis_password) < 8:
+            self._validation_errors.append("UPSTASH_REDIS_PASSWORD appears too short (minimum 8 characters)")
+        
+        # Cloudflare R2 Validation - Individual Parameters
         if not self.r2_account_id:
             self._validation_errors.append("R2_ACCOUNT_ID is required")
         elif len(self.r2_account_id) < 32:
@@ -129,6 +174,13 @@ class TradingConfig:
             
         if not self.r2_bucket_name:
             self._validation_errors.append("R2_BUCKET_NAME is required")
+        elif not self.r2_bucket_name.strip():
+            self._validation_errors.append("R2_BUCKET_NAME cannot be empty")
+            
+        if not self.r2_endpoint:
+            self._validation_errors.append("R2_ENDPOINT is required")
+        elif not self.r2_endpoint.startswith('https://'):
+            self._validation_errors.append("R2_ENDPOINT must start with https://")
         
         # Environment Validation
         valid_environments = ["development", "testnet", "production"]
@@ -167,6 +219,34 @@ class TradingConfig:
         if self.price_update_interval_seconds < 1:
             self._validation_errors.append("price_update_interval_seconds must be at least 1")
     
+    def get_postgresql_url(self) -> str:
+        """Build PostgreSQL connection URL from individual parameters."""
+        return (
+            f"postgresql://{self.neon_username}:{self.neon_password}@"
+            f"{self.neon_host}:{self.neon_port}/{self.neon_database}"
+            f"?sslmode={self.neon_ssl_mode}"
+        )
+    
+    def get_redis_url(self) -> str:
+        """Build Redis connection URL from individual parameters."""
+        auth_part = ""
+        if self.upstash_redis_username:
+            auth_part = f"{self.upstash_redis_username}:{self.upstash_redis_password}@"
+        else:
+            auth_part = f":{self.upstash_redis_password}@" if self.upstash_redis_password else ""
+        
+        return f"redis://{auth_part}{self.upstash_redis_host}:{self.upstash_redis_port}"
+    
+    def get_r2_config(self) -> Dict[str, str]:
+        """Get Cloudflare R2 configuration as dictionary."""
+        return {
+            "account_id": self.r2_account_id,
+            "api_token": self.r2_api_token,
+            "bucket_name": self.r2_bucket_name,
+            "endpoint": self.r2_endpoint,
+            "region": self.r2_region
+        }
+    
     def to_dict(self) -> Dict[str, Any]:
         """Convert configuration to dictionary (excluding sensitive data)."""
         return {
@@ -184,7 +264,10 @@ class TradingConfig:
             "signal_check_interval_seconds": self.signal_check_interval_seconds,
             "price_update_interval_seconds": self.price_update_interval_seconds,
             "config_loaded_at": self._config_loaded_at.isoformat(),
-            "api_keys_configured": bool(self.binance_api_key and self.binance_api_secret)
+            "api_keys_configured": bool(self.binance_api_key and self.binance_api_secret),
+            "database_configured": bool(self.neon_host and self.neon_database),
+            "redis_configured": bool(self.upstash_redis_host and self.upstash_redis_password),
+            "r2_configured": bool(self.r2_account_id and self.r2_api_token and self.r2_bucket_name)
         }
     
     def save_config_summary(self, filepath: str) -> None:
@@ -219,11 +302,21 @@ class ConfigurationManager:
         Expected environment variables:
         - BINANCE_API_KEY: Binance API key
         - BINANCE_API_SECRET: Binance API secret
-        - NEON_DATABASE_URL: PostgreSQL connection URL
-        - UPSTASH_REDIS_URL: Redis connection URL
+        - NEON_HOST: PostgreSQL host
+        - NEON_DATABASE: PostgreSQL database name
+        - NEON_USERNAME: PostgreSQL username
+        - NEON_PASSWORD: PostgreSQL password
+        - NEON_PORT: PostgreSQL port (default: 5432)
+        - NEON_SSL_MODE: PostgreSQL SSL mode (default: require)
+        - UPSTASH_REDIS_USERNAME: Redis username (optional)
+        - UPSTASH_REDIS_HOST: Redis host
+        - UPSTASH_REDIS_PORT: Redis port (default: 6379)
+        - UPSTASH_REDIS_PASSWORD: Redis password
         - R2_ACCOUNT_ID: Cloudflare R2 account ID
         - R2_API_TOKEN: Cloudflare R2 API token
         - R2_BUCKET_NAME: Cloudflare R2 bucket name
+        - R2_ENDPOINT: Cloudflare R2 endpoint URL
+        - R2_REGION: Cloudflare R2 region (default: auto)
         - BINANCE_TESTNET: true/false for testnet usage
         - TRADING_ENVIRONMENT: development/testnet/production
         - LOG_LEVEL: DEBUG/INFO/WARNING/ERROR
@@ -239,13 +332,26 @@ class ConfigurationManager:
         api_key = os.getenv("BINANCE_API_KEY", "").strip()
         api_secret = os.getenv("BINANCE_API_SECRET", "").strip()
         
-        # Load data pipeline credentials (Phase 1.3)
-        neon_db_url = os.getenv("NEON_DATABASE_URL", "").strip()
-        redis_url = os.getenv("UPSTASH_REDIS_URL", "").strip()
+        # Load PostgreSQL (Neon) credentials - Individual parameters
+        neon_host = os.getenv("NEON_HOST", "").strip()
+        neon_database = os.getenv("NEON_DATABASE", "").strip()
+        neon_username = os.getenv("NEON_USERNAME", "").strip()
+        neon_password = os.getenv("NEON_PASSWORD", "").strip()
+        neon_port = int(os.getenv("NEON_PORT", "5432"))
+        neon_ssl_mode = os.getenv("NEON_SSL_MODE", "require").strip()
+        
+        # Load Redis (Upstash) credentials - Individual parameters
+        redis_username = os.getenv("UPSTASH_REDIS_USERNAME", "").strip()
+        redis_host = os.getenv("UPSTASH_REDIS_HOST", "").strip()
+        redis_port = int(os.getenv("UPSTASH_REDIS_PORT", "6379"))
+        redis_password = os.getenv("UPSTASH_REDIS_PASSWORD", "").strip()
+        
+        # Load Cloudflare R2 credentials - Individual parameters
         r2_account = os.getenv("R2_ACCOUNT_ID", "").strip()
         r2_token = os.getenv("R2_API_TOKEN", "").strip()
         r2_bucket = os.getenv("R2_BUCKET_NAME", "").strip()
         r2_endpoint = os.getenv("R2_ENDPOINT", "").strip()
+        r2_region = os.getenv("R2_REGION", "auto").strip()
         
         # Load environment settings
         use_testnet = os.getenv("BINANCE_TESTNET", "true").lower() == "true"
@@ -260,12 +366,21 @@ class ConfigurationManager:
             binance_api_key=api_key,
             binance_api_secret=api_secret,
             binance_testnet=use_testnet,
-            neon_database_url=neon_db_url,
-            upstash_redis_url=redis_url,
+            neon_host=neon_host,
+            neon_database=neon_database,
+            neon_username=neon_username,
+            neon_password=neon_password,
+            neon_port=neon_port,
+            neon_ssl_mode=neon_ssl_mode,
+            upstash_redis_username=redis_username,
+            upstash_redis_host=redis_host,
+            upstash_redis_port=redis_port,
+            upstash_redis_password=redis_password,
             r2_account_id=r2_account,
             r2_api_token=r2_token,
             r2_bucket_name=r2_bucket,
             r2_endpoint=r2_endpoint,
+            r2_region=r2_region,
             environment=environment,
             log_level=log_level,
             data_directory=data_dir
