@@ -106,12 +106,12 @@ class PipelineTestSuite:
             
             # Check required environment variables
             required_vars = [
-                        ('neon_host', 'NEON_HOST'),
-        ('neon_database', 'NEON_DATABASE'), 
-        ('neon_username', 'NEON_USERNAME'),
-        ('neon_password', 'NEON_PASSWORD'),
-        ('upstash_redis_host', 'UPSTASH_REDIS_HOST'),
-        ('upstash_redis_password', 'UPSTASH_REDIS_PASSWORD'),
+                ('neon_host', 'NEON_HOST'),
+                ('neon_database', 'NEON_DATABASE'), 
+                ('neon_username', 'NEON_USERNAME'),
+                ('neon_password', 'NEON_PASSWORD'),
+                ('upstash_redis_host', 'UPSTASH_REDIS_HOST'),
+                ('upstash_redis_password', 'UPSTASH_REDIS_PASSWORD'),
                 ('r2_account_id', 'R2_ACCOUNT_ID'),
                 ('r2_api_token', 'R2_API_TOKEN'),
                 ('r2_bucket_name', 'R2_BUCKET_NAME')
@@ -123,9 +123,13 @@ class PipelineTestSuite:
                 if not value:
                     missing_vars.append(env_var)
                 else:
-                    # Mask sensitive data for display
-                    masked_value = value[:10] + "..." + value[-10:] if len(value) > 20 else value[:5] + "..."
-                    self.print_status(f"{env_var}: {masked_value}")
+                    # SECURITY: Never print passwords or tokens - only show presence
+                    if any(sensitive in env_var.lower() for sensitive in ['password', 'secret', 'token', 'key']):
+                        self.print_status(f"{env_var}: [CONFIGURED SECURELY]")
+                    else:
+                        # For non-sensitive values, show truncated version
+                        masked_value = value[:8] + "..." if len(value) > 8 else value[:3] + "..."
+                        self.print_status(f"{env_var}: {masked_value}")
             
             if missing_vars:
                 error_msg = f"Missing environment variables: {', '.join(missing_vars)}"
@@ -596,20 +600,39 @@ async def main():
     test_suite = PipelineTestSuite()
     
     try:
-        # Run all tests in sequence
-        tests = [
-            test_suite.test_configuration(),
-            test_suite.test_connection_managers(),
-            test_suite.test_database_schema(),
-            test_suite.test_market_data_pipeline(),
-            test_suite.test_data_quality_monitoring(),
-            test_suite.test_performance_benchmarks()
-        ]
+        # Run all tests in sequence - call and await each test individually
+        # Test 1: Configuration
+        success = await test_suite.test_configuration()
+        if not success:
+            test_suite.print_final_results()
+            return
         
-        for test in tests:
-            success = await test
-            if not success:
-                break  # Stop on first failure for debugging
+        # Test 2: Connection Managers
+        success = await test_suite.test_connection_managers()
+        if not success:
+            test_suite.print_final_results()
+            return
+        
+        # Test 3: Database Schema (only if connections work)
+        success = await test_suite.test_database_schema()
+        if not success:
+            test_suite.print_final_results()
+            return
+        
+        # Test 4: Market Data Pipeline (only if database works)
+        success = await test_suite.test_market_data_pipeline()
+        if not success:
+            test_suite.print_final_results()
+            return
+        
+        # Test 5: Data Quality Monitoring (only if pipeline works)
+        success = await test_suite.test_data_quality_monitoring()
+        if not success:
+            test_suite.print_final_results()
+            return
+        
+        # Test 6: Performance Benchmarks (only if quality monitoring works)
+        success = await test_suite.test_performance_benchmarks()
     
     except KeyboardInterrupt:
         test_suite.print_status("Testing interrupted by user", "warning")

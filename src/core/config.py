@@ -235,7 +235,8 @@ class TradingConfig:
         else:
             auth_part = f":{self.upstash_redis_password}@" if self.upstash_redis_password else ""
         
-        return f"redis://{auth_part}{self.upstash_redis_host}:{self.upstash_redis_port}"
+        # Use rediss:// (SSL) for Upstash Redis which requires SSL connections
+        return f"rediss://{auth_part}{self.upstash_redis_host}:{self.upstash_redis_port}"
     
     def get_r2_config(self) -> Dict[str, str]:
         """Get Cloudflare R2 configuration as dictionary."""
