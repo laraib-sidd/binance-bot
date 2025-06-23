@@ -53,6 +53,9 @@ class TradingConfig:
     neon_port: int = field(default=5432)
     neon_ssl_mode: str = field(default="require")
     
+    # Database schema configuration
+    database_schema: str = field(default="helios_trading")  # Dedicated schema for trading bot
+    
     # Redis Configuration (Upstash) - Individual Parameters
     upstash_redis_username: str = field(default="", repr=False)
     upstash_redis_host: str = field(default="", repr=False)

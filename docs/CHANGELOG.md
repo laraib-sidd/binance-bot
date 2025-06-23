@@ -7,14 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - Current Development
 
-### 🔄 CONFIGURATION UPDATE - 2024-12-23 
-- **Status**: ✅ **COMPLETE - Individual Database Parameters**
-- **Breaking Change**: Updated database configuration to use individual parameters instead of URLs
-- **User Action Required**: Update .env file to use new parameter format
-- **Backward Compatibility**: Old URL format still works but individual parameters preferred
+### 🔄 DATABASE ARCHITECTURE IMPROVEMENT - 2024-12-23 
+- **Status**: ✅ **COMPLETE - Dedicated Schema & Enhanced Testing**
+- **Breaking Change**: Database now uses dedicated 'helios_trading' schema instead of 'public'
+- **User Action Required**: Run migration to create dedicated schema (automatic on next test)
+- **Testing Enhancement**: Comprehensive test cleanup prevents database pollution
 
 ### Changed
-- **2024-12-23**: BREAKING CHANGE - Database Configuration Update
+- **2024-12-23**: BREAKING CHANGE - Database Architecture & Testing Improvements
+  - **Dedicated Database Schema** (src/data/database_schema.py):
+    - All tables now created in dedicated 'helios_trading' schema instead of 'public'
+    - Automatic schema creation with proper permissions
+    - Schema-aware table and index verification
+    - Configurable schema name via DATABASE_SCHEMA environment variable
+    - Improved data isolation and security for production trading systems
+  - **Enhanced Test Cleanup System** (scripts/test_data_pipeline.py):
+    - Comprehensive tracking of all test objects (Redis keys, database entries)
+    - Centralized cleanup that runs regardless of test success/failure
+    - Pattern-based cleanup for orphaned test data
+    - Prevents database pollution from failed or interrupted tests
+    - Tracks test objects across multiple tables and data stores
+  - **Configuration Enhancement** (src/core/config.py):
+    - Added database_schema parameter with 'helios_trading' default
+    - Schema configuration now part of core trading configuration
+- **2024-12-23**: Database Configuration Update
   - **Configuration System** (src/core/config.py):
     - Changed from URL-based configuration to individual database parameters
     - PostgreSQL: NEON_HOST, NEON_DATABASE, NEON_USERNAME, NEON_PASSWORD, NEON_PORT, NEON_SSL_MODE
