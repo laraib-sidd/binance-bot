@@ -1,0 +1,92 @@
+# Helios Trading Bot Environment Configuration
+# Copy this file to .env and fill in your actual values
+
+# ==============================================
+# BINANCE API CONFIGURATION (REQUIRED)
+# ==============================================
+# Get these from: https://testnet.binance.vision/
+# Choose "System generated" (HMAC) when creating API keys
+BINANCE_API_KEY=your_binance_api_key_here
+BINANCE_API_SECRET=your_binance_api_secret_here
+BINANCE_TESTNET=true
+
+# ==============================================
+# ENVIRONMENT SETTINGS
+# ==============================================
+TRADING_ENVIRONMENT=development
+LOG_LEVEL=INFO
+DATA_DIRECTORY=local/data
+
+# ==============================================
+# TRADING PARAMETERS (Optional Overrides)
+# ==============================================
+# Position and Risk Management
+MAX_POSITION_SIZE_USD=100.00
+MAX_DAILY_LOSS_USD=50.00
+MAX_ACCOUNT_DRAWDOWN_PERCENT=25.00
+
+# Grid Trading Settings
+GRID_LEVELS=10
+GRID_SPACING_PERCENT=1.0
+
+# Signal and Timing Settings
+SIGNAL_CHECK_INTERVAL_SECONDS=30
+PRICE_UPDATE_INTERVAL_SECONDS=5
+
+# Trading Pairs (comma-separated, no spaces)
+DEFAULT_TRADING_PAIRS=SOLUSDT,AVAXUSDT,LINKUSDT,DOTUSDT,ADAUSDT
+
+# ==============================================
+# SETUP INSTRUCTIONS
+# ==============================================
+# 1. Copy this file to .env: cp .env.example .env
+# 2. Get Binance Testnet API keys from: https://testnet.binance.vision/
+# 3. Replace "your_binance_api_key_here" with your actual API key
+# 4. Replace "your_binance_api_secret_here" with your actual API secret
+# 5. Save the file and run: python3 scripts/test_environment.py
+
+
+
+# =====================================
+# Neon PostgreSQL (Singapore)
+# =====================================
+NEON_HOST=
+NEON_DATABASE=
+NEON_USERNAME=
+NEON_PASSWORD=
+NEON_PORT=
+NEON_SSL_MODE=
+
+# =====================================
+# Upstash Redis (Singapore)
+# =====================================
+UPSTASH_REDIS_USERNAME=
+UPSTASH_REDIS_HOST=
+UPSTASH_REDIS_PORT=
+UPSTASH_REDIS_PASSWORD=
+
+# =====================================
+# Cloudflare R2 (Global)
+# =====================================
+R2_ACCOUNT_ID=
+R2_API_TOKEN=
+R2_BUCKET_NAME=
+R2_ENDPOINT=
+R2_REGION=
+
+# =====================================
+# Trading Bot Configuration
+# =====================================
+ENVIRONMENT=development
+LOG_LEVEL=INFO
+TRADING_MODE=paper
+MAX_POSITION_SIZE=100.00
+RISK_PERCENTAGE=1.0
+
+# =====================================
+# Data Pipeline Settings
+# =====================================
+DATA_DIRECTORY=local/data
+CACHE_TTL_SECONDS=300
+BATCH_SIZE=1000
+POLLING_INTERVAL_SECONDS=60

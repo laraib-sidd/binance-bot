@@ -1,0 +1,54 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Python Code Style Guidelines
+
+## Formatting
+- Use `black` for code formatting
+- Use `isort` for import sorting
+- Maximum line length: 88 characters (black default)
+
+## Code Organization
+```python
+# Import order:
+# 1. Standard library imports
+import os
+from typing import Dict
+
+# 2. Third-party imports
+from dotenv import load_dotenv
+import requests
+
+# 3. Local imports
+from local_module import something
+```
+
+## Naming Conventions
+- Functions: `snake_case`
+- Variables: `snake_case`
+- Constants: `UPPER_CASE`
+- Classes: `PascalCase`
+
+## Environment Variables
+- Store secrets in `.env` files
+- Never commit `.env` files
+- Use descriptive environment variable names:
+  ```python
+  DATABRICKS_HOST = os.getenv("DATABRICKS_HOST")
+  DATABRICKS_TOKEN = os.getenv("DATABRICKS_TOKEN")
+  ```
+
+## Documentation
+- Use docstrings for functions:
+  ```python
+  def get_databricks_connection() -> Connection:
+      """Create and return a Databricks SQL connection"""
+      # implementation
+  ```
+
+## Basic Quality
+- Handle exceptions appropriately
+- Use type hints where helpful
+- Keep functions focused and small
