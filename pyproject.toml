@@ -203,6 +203,7 @@ addopts = [
 ]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+pythonpath = ["."]
 filterwarnings = [
     "error",
     "ignore::UserWarning",
