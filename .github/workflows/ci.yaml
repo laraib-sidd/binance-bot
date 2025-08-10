@@ -21,6 +21,8 @@ jobs:
       - name: Format check (black)
         run: uv run black --check src tests
       - name: Type check (mypy)
-        run: MYPYPATH=src PYTHONPATH=src uv run mypy src
+        env:
+          PYTHONPATH: src
+        run: uv run mypy src
       - name: Run tests
         run: uv run pytest -m "not integration" -q
