@@ -18,7 +18,7 @@ from dataclasses import dataclass, field
 import logging
 from threading import Lock
 import time
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +81,7 @@ class BinanceRateLimiter:
     - Individual endpoint limits
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize rate limiter with Binance-specific limits."""
         self._lock = Lock()
 
@@ -201,7 +201,7 @@ class BinanceRateLimiter:
 
         logger.debug(f"API request: {endpoint} (weight: {weight})")
 
-    def get_status(self) -> Dict[str, any]:
+    def get_status(self) -> Dict[str, Any]:
         """
         Get current rate limiter status for monitoring.
 
@@ -209,7 +209,7 @@ class BinanceRateLimiter:
             Dictionary with current usage and limits
         """
         with self._lock:
-            status = {}
+            status: Dict[str, Any] = {}
 
             for name, rate_limit in self._rate_limits.items():
                 status[name] = {
@@ -287,7 +287,7 @@ class BinanceRateLimiter:
             Recommended delay in seconds
         """
         with self._lock:
-            max_usage_percent = 0
+            max_usage_percent = 0.0
 
             for rate_limit in self._rate_limits.values():
                 usage_percent = (rate_limit.current_usage / rate_limit.limit) * 100
@@ -343,7 +343,7 @@ def update_rate_limits(headers: Dict[str, str]) -> None:
     _rate_limiter.update_limits_from_headers(headers)
 
 
-def get_rate_limiter_status() -> Dict[str, any]:
+def get_rate_limiter_status() -> Dict[str, Any]:
     """
     Get current rate limiter status.
 

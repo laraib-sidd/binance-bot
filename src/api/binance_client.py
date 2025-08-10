@@ -19,7 +19,8 @@ import hmac
 import json
 import logging
 import time
-from typing import Any, Dict, List, Optional
+from types import TracebackType
+from typing import Any, Dict, List, Optional, Type, cast
 from urllib.parse import urlencode
 
 import aiohttp
@@ -89,14 +90,25 @@ class BinanceClient:
 
         logger.debug("✅ API credentials validated")
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> "BinanceClient":
         """Async context manager entry."""
         await self._ensure_session()
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
+    ) -> None:
         """Async context manager exit."""
         await self.close()
+
+    def _require_session(self) -> aiohttp.ClientSession:
+        """Return the active session, asserting it is initialized."""
+        if self._session is None or self._session.closed:
+            raise RuntimeError("HTTP session is not initialized")
+        return self._session
 
     async def _ensure_session(self) -> None:
         """Ensure HTTP session is available."""
@@ -169,7 +181,7 @@ class BinanceClient:
         params: Optional[Dict[str, Any]] = None,
         signed: bool = False,
         retries: int = 0,
-    ) -> Dict[str, Any]:
+    ) -> Any:
         """
         Make HTTP request to Binance API with comprehensive error handling.
 
@@ -208,16 +220,18 @@ class BinanceClient:
             # Make request
             request_start = time.time()
 
+            session = self._require_session()
+
             if method.upper() == "GET":
                 if final_query:
                     url += f"?{final_query}"
-                async with self._session.get(url) as response:
+                async with session.get(url) as response:
                     return await self._handle_response(
                         response, endpoint, request_start
                     )
 
             elif method.upper() == "POST":
-                async with self._session.post(url, data=final_query) as response:
+                async with session.post(url, data=final_query) as response:
                     return await self._handle_response(
                         response, endpoint, request_start
                     )
@@ -281,7 +295,7 @@ class BinanceClient:
                                 "response_preview": response_text[:200],
                             },
                         )
-                    data = await response.json()
+                    data = cast(Dict[str, Any], await response.json())
                     logger.debug(f"✅ {endpoint} success: {len(str(data))} chars")
                     return data
                 except json.JSONDecodeError as e:
@@ -337,7 +351,7 @@ class BinanceClient:
         Returns:
             Server timestamp in milliseconds
         """
-        response = await self._make_request("GET", "/api/v3/time")
+        response = cast(Dict[str, Any], await self._make_request("GET", "/api/v3/time"))
         return int(response["serverTime"])
 
     async def get_exchange_info(
@@ -356,7 +370,10 @@ class BinanceClient:
         if symbols:
             params["symbols"] = json.dumps(symbols)
 
-        response = await self._make_request("GET", "/api/v3/exchangeInfo", params)
+        response = cast(
+            Dict[str, Any],
+            await self._make_request("GET", "/api/v3/exchangeInfo", params),
+        )
         return ExchangeInfo.from_binance_response(response)
 
     async def get_ticker_price(self, symbol: str) -> TickerData:
@@ -394,9 +411,12 @@ class BinanceClient:
         symbols_upper = [s.upper() for s in symbols]
         params = {"symbols": json.dumps(symbols_upper)}
 
-        response = await self._make_request("GET", "/api/v3/ticker/24hr", params)
+        response = cast(
+            List[Dict[str, Any]],
+            await self._make_request("GET", "/api/v3/ticker/24hr", params),
+        )
 
-        tickers = {}
+        tickers: Dict[str, TickerData] = {}
         for ticker_data in response:
             ticker = TickerData.from_binance_response(ticker_data)
             ticker.validate()
@@ -437,9 +457,11 @@ class BinanceClient:
         if end_time:
             params["endTime"] = end_time
 
-        response = await self._make_request("GET", "/api/v3/klines", params)
+        response = cast(
+            List[List[Any]], await self._make_request("GET", "/api/v3/klines", params)
+        )
 
-        klines = []
+        klines: List[KlineData] = []
         for kline_data in response:
             kline = KlineData.from_binance_response(symbol, interval, kline_data)
             kline.validate()
@@ -457,7 +479,10 @@ class BinanceClient:
         Returns:
             Account information with balances
         """
-        response = await self._make_request("GET", "/api/v3/account", signed=True)
+        response = cast(
+            Dict[str, Any],
+            await self._make_request("GET", "/api/v3/account", signed=True),
+        )
         account_info = AccountInfo.from_binance_response(response)
         account_info.validate()
 
@@ -512,10 +537,11 @@ class BinanceClient:
         for symbol in symbols:
             try:
                 params = {"symbol": symbol.upper()}
-                response = await self._make_request(
-                    "GET", "/api/v3/ticker/price", params
+                response = cast(
+                    Dict[str, Any],
+                    await self._make_request("GET", "/api/v3/ticker/price", params),
                 )
-                price = Decimal(str(response["price"]))
+                price = Decimal(str(response.get("price")))
                 prices[symbol.upper()] = price
             except Exception as e:
                 logger.warning(f"Failed to get price for {symbol}: {e}")

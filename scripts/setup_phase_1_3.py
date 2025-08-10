@@ -135,7 +135,7 @@ def check_environment_variables() -> bool:
         print_status(
             "One or more environment variables are missing or invalid.", "error"
         )
-        print_guidance("Please check your .env file against .env.example.")
+        print_guidance("Please check your .env file against .env.template.")
     return all_ok
 
 

@@ -230,7 +230,6 @@ trade_history.db
 *.sqlite3
 
 # Data files
-data/
 historical_data/
 *.csv
 *.json

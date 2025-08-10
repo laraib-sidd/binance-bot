@@ -11,27 +11,25 @@ This script orchestrates the entire lifecycle of the trading bot, including:
 import asyncio
 import logging
 
-from src.core.config import load_configuration
-from src.data.connection_managers import close_connections, initialize_connections
-from src.data.market_data_pipeline import MarketDataPipeline
-from src.utils.logging import setup_logging
+from .core.config import load_configuration
+from .data.connection_managers import close_connections
+from .data.market_data_pipeline import MarketDataPipeline
+from .utils.logging import setup_logging
 
 
-async def main():
+async def main() -> None:
     """Main execution function for the Helios Trading Bot."""
     # 1. Load configuration and setup logging
     config = load_configuration()
-    setup_logging(config.log_level)
+    # Initialize logging with full configuration (includes log level)
+    setup_logging(config)
     logger = logging.getLogger(__name__)
 
     logger.info("🚀 Starting Helios Trading Bot...")
 
     pipeline = None
     try:
-        # 2. Initialize connections
-        await initialize_connections(config)
-
-        # 3. Initialize and start the market data pipeline
+        # 2. Initialize and start the market data pipeline (handles DB/schema/conn setup)
         pipeline = MarketDataPipeline()
         await (
             pipeline.initialize()

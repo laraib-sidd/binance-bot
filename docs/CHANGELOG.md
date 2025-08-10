@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - Current Development
 
+### 🚀 Phase 1.6 - Regime Gating, Schema Fixes, CI (2025-01-10)
+- Added regime-aware gating in `SignalGenerator` using a lightweight ADX proxy (`adx_threshold` configurable). Grid/entries disabled during strong trend regimes.
+- Fixed logging initialization in `src/main.py` to pass full `TradingConfig` to logging setup.
+- Enforced configurable database schema usage throughout `market_data_pipeline.py` (no more hardcoded `helios_trading`).
+- Repaired database verification and stats queries in `src/data/database_schema.py` (correct f-string in table_type filter; simplified stats query to avoid placeholder mismatch).
+- Aligned versions: bumped `pyproject.toml` to `1.5.0`; updated mypy target to Python 3.11; removed Python 3.9 classifier.
+- Disabled broken backtest CLI entry until implemented.
+- Added `.pre-commit-config.yaml` with black/ruff/mypy/pytest hooks; added GitHub Actions CI (`.github/workflows/ci.yaml`) to run lint, type checks, and tests.
+- CI fix: ensure `ruff`, `black`, `mypy`, and `pytest` run inside uv-managed environment using `astral-sh/setup-uv@v3` and `uv run` to avoid "command not found" errors.
+- Typing: added `src/py.typed` and packaging include to satisfy PEP 561 so `mypy` analyzes our package and avoids `import-untyped` errors for internal modules.
+- Imports: switched `src/main.py` to use package-relative imports to ensure consistent resolution under both local runs and CI (`from .data...` etc.).
+- Tooling: configured mypy to resolve the project package via `mypy_path = ["src"]` and set CI step env (`PYTHONPATH=src`) so CI matches local behavior.
+- Documentation: to follow with API docs and user guides in Phase 1.6 docs task.
+
 ### 🔄 DATABASE ARCHITECTURE IMPROVEMENT - 2024-12-23
 - **Status**: ✅ **COMPLETE - Dedicated Schema & Enhanced Testing**
 - **Breaking Change**: Database now uses dedicated 'helios_trading' schema instead of 'public'
@@ -49,7 +63,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Updated integration tests to use new configuration methods
     - Created test_config_update.py for validation of configuration changes
   - **Environment Configuration**:
-    - .env.example already contains individual parameters (no changes needed)
+    - .env.template already contains individual parameters (no changes needed)
     - Backward compatibility maintained for existing URL-based configurations
   - Context: Individual parameters provide better flexibility and security for deployment
   - Impact: More flexible database configuration, easier credential management, better cloud deployment support
@@ -204,7 +218,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - test_environment.py: Comprehensive environment testing with 5 test categories
     - setup_dev_environment.py: Automated environment setup with UV/pip detection
     - Modern dependency management with pyproject.toml
-    - Sample configuration file generation (.env.example, config.example.py)
+    - Sample configuration file generation (.env.template, config.example.py)
     - UV setup guide (uv_setup.md) for fast modern development
   - **Advanced Logging System** (src/utils/logging.py):
     - TradingLoggerAdapter with trading-specific context
@@ -226,7 +240,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Script commands available via `helios-*` CLI tools
   - **Scripts Organization & .env Configuration** (2024-12-22):
     - Moved setup and test scripts to `scripts/` directory for better organization
-    - Created comprehensive `.env.example` file with all configuration options
+    - Created comprehensive `.env.template` file with all configuration options
     - Updated README.md with modern setup instructions using .env file
     - Scripts now automatically load from .env file without manual exports
     - Updated pyproject.toml script references for new script locations

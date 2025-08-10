@@ -14,7 +14,7 @@ from src.strategies.technical_analysis import (
 
 
 class TestTechnicalAnalysis(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         """Set up a sample DataFrame for testing."""
         self.data = pl.DataFrame(
             {
@@ -24,28 +24,32 @@ class TestTechnicalAnalysis(unittest.TestCase):
             }
         )
 
-    def test_calculate_sma(self):
+    def test_calculate_sma(self) -> None:
         """Test Simple Moving Average calculation."""
         sma_5 = calculate_sma(self.data, length=5)
+        self.assertIsNotNone(sma_5)
         self.assertIsInstance(sma_5, pl.Series)
         self.assertAlmostEqual(sma_5[-1], 122.6)
         self.assertTrue(sma_5.is_null().sum() == 4)
 
-    def test_calculate_ema(self):
+    def test_calculate_ema(self) -> None:
         """Test Exponential Moving Average calculation."""
         ema_5 = calculate_ema(self.data, length=5)
+        self.assertIsNotNone(ema_5)
+        assert ema_5 is not None
         self.assertIsInstance(ema_5, pl.Series)
         # Polars EMA calculation can differ slightly from Pandas
         self.assertAlmostEqual(ema_5[-1], 122.34, places=2)
 
-    def test_calculate_atr(self):
+    def test_calculate_atr(self) -> None:
         """Test Average True Range calculation."""
         atr_5 = calculate_atr(self.data, length=5)
+        self.assertIsNotNone(atr_5)
         self.assertIsInstance(atr_5, pl.Series)
         # Polars ATR calculation can differ slightly
         self.assertAlmostEqual(atr_5[-1], 5.6, places=1)
 
-    def test_insufficient_data(self):
+    def test_insufficient_data(self) -> None:
         """Test that indicators return None for insufficient data."""
         small_data = self.data.slice(0, 3)
         self.assertIsNone(calculate_sma(small_data, length=5))

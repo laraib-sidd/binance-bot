@@ -117,7 +117,7 @@ class EnvironmentValidator:
         "docs",
     ]
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.system_info = SystemInfo()
         self._validation_completed = False
 

@@ -12,6 +12,7 @@ import asyncio
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 import json
+from typing import AsyncGenerator, Generator
 
 import asyncpg
 import pytest
@@ -27,7 +28,7 @@ class TestConnectionManagers:
     """Test connection managers for all services."""
 
     @pytest.fixture
-    async def connection_manager(self):
+    async def connection_manager(self) -> AsyncGenerator[ConnectionManager, None]:
         """Create connection manager for testing."""
         manager = ConnectionManager()
         await manager.connect_all()
@@ -35,7 +36,7 @@ class TestConnectionManagers:
         await manager.disconnect_all()
 
     @pytest.mark.asyncio
-    async def test_postgresql_connection(self):
+    async def test_postgresql_connection(self) -> None:
         """Test PostgreSQL connection and basic operations."""
         manager = ConnectionManager()
         await manager.postgres.connect()
@@ -55,7 +56,7 @@ class TestConnectionManagers:
             await manager.postgres.disconnect()
 
     @pytest.mark.asyncio
-    async def test_redis_connection(self):
+    async def test_redis_connection(self) -> None:
         """Test Redis connection and caching operations."""
         manager = ConnectionManager()
         await manager.redis.connect()
@@ -106,7 +107,7 @@ class TestConnectionManagers:
             await manager.redis.disconnect()
 
     @pytest.mark.asyncio
-    async def test_r2_connection(self):
+    async def test_r2_connection(self) -> None:
         """Test R2 connection and basic operations."""
         manager = ConnectionManager()
         await manager.r2.connect()
@@ -149,7 +150,9 @@ class TestConnectionManagers:
             pass  # R2 doesn't need explicit disconnect
 
     @pytest.mark.asyncio
-    async def test_connection_manager_lifecycle(self, connection_manager):
+    async def test_connection_manager_lifecycle(
+        self, connection_manager: ConnectionManager
+    ) -> None:
         """Test connection manager full lifecycle."""
         # Test all services are connected
         assert connection_manager.is_connected
@@ -169,14 +172,17 @@ class TestDatabaseSchema:
     """Test database schema creation and validation."""
 
     @pytest.fixture
-    async def db_schema(self):
+    async def db_schema(self) -> AsyncGenerator[DatabaseSchema, None]:
         """Create database schema for testing."""
         schema = DatabaseSchema()
         await schema.initialize()
-        return schema
+        try:
+            yield schema
+        finally:
+            pass
 
     @pytest.mark.asyncio
-    async def test_database_initialization(self):
+    async def test_database_initialization(self) -> None:
         """Test database schema initialization."""
         # Initialize database
         success = await initialize_database()
@@ -192,7 +198,7 @@ class TestDatabaseSchema:
         assert len(verification["missing_tables"]) == 0
 
     @pytest.mark.asyncio
-    async def test_schema_verification(self, db_schema):
+    async def test_schema_verification(self, db_schema: DatabaseSchema) -> None:
         """Test schema verification functionality."""
         # Create all tables
         await db_schema.create_all_tables()
@@ -208,7 +214,7 @@ class TestDatabaseSchema:
         assert "trading_sessions" not in verification["missing_tables"]
 
     @pytest.mark.asyncio
-    async def test_table_stats(self, db_schema):
+    async def test_table_stats(self, db_schema: DatabaseSchema) -> None:
         """Test table statistics gathering."""
         await db_schema.create_all_tables()
 
@@ -225,7 +231,7 @@ class TestDatabaseSchema:
             assert table in stats["row_counts"]
 
     @pytest.mark.asyncio
-    async def test_data_validation_constraints(self, db_schema):
+    async def test_data_validation_constraints(self, db_schema: DatabaseSchema) -> None:
         """Test database constraints and validation."""
         await db_schema.create_all_tables()
 
@@ -236,10 +242,14 @@ class TestDatabaseSchema:
         ) VALUES ('BTCUSDT', 50000.50, CURRENT_TIMESTAMP)
         """
 
-        await db_schema.connection_manager.postgres.execute(valid_insert)
+        cm = db_schema.connection_manager
+        assert cm is not None
+        await cm.postgres.execute(valid_insert)
 
         # Verify data was inserted
-        count = await db_schema.connection_manager.postgres.fetchval(
+        cm = db_schema.connection_manager
+        assert cm is not None
+        count = await cm.postgres.fetchval(
             "SELECT COUNT(*) FROM current_prices WHERE symbol = 'BTCUSDT'"
         )
         assert count == 1
@@ -251,20 +261,24 @@ class TestDatabaseSchema:
                 symbol, price, timestamp
             ) VALUES ('ETHUSDT', -100.00, CURRENT_TIMESTAMP)
             """
-            await db_schema.connection_manager.postgres.execute(invalid_insert)
+            cm = db_schema.connection_manager
+            assert cm is not None
+            await cm.postgres.execute(invalid_insert)
 
         # Cleanup
-        await db_schema.connection_manager.postgres.execute(
-            "DELETE FROM current_prices WHERE symbol = 'BTCUSDT'"
-        )
+        cm = db_schema.connection_manager
+        assert cm is not None
+        await cm.postgres.execute("DELETE FROM current_prices WHERE symbol = 'BTCUSDT'")
 
     @pytest.mark.asyncio
-    async def test_current_price_operations(self, db_schema):
+    async def test_current_price_operations(self, db_schema: DatabaseSchema) -> None:
         """Test basic current price operations."""
         await db_schema.create_all_tables()
 
         # Insert test data
-        await db_schema.connection_manager.postgres.execute(
+        cm = db_schema.connection_manager
+        assert cm is not None
+        await cm.postgres.execute(
             """INSERT INTO current_prices
                (symbol, price, timestamp)
                VALUES ('TESTUSDT', 123.45, CURRENT_TIMESTAMP)
@@ -272,7 +286,9 @@ class TestDatabaseSchema:
         )
 
         # Verify data
-        result = await db_schema.connection_manager.postgres.fetchrow(
+        cm = db_schema.connection_manager
+        assert cm is not None
+        result = await cm.postgres.fetchrow(
             "SELECT * FROM current_prices WHERE symbol = 'TESTUSDT'"
         )
 
@@ -285,7 +301,7 @@ class TestMarketDataPipeline:
     """Test complete market data pipeline."""
 
     @pytest.fixture
-    async def pipeline(self):
+    async def pipeline(self) -> AsyncGenerator[MarketDataPipeline, None]:
         """Create market data pipeline for testing."""
         pipeline = MarketDataPipeline()
         pipeline.symbols = ["BTCUSDT"]  # Use single symbol for testing
@@ -294,7 +310,7 @@ class TestMarketDataPipeline:
         await pipeline.stop_pipeline()
 
     @pytest.mark.asyncio
-    async def test_pipeline_initialization(self):
+    async def test_pipeline_initialization(self) -> None:
         """Test pipeline initialization."""
         pipeline = MarketDataPipeline()
         await pipeline.initialize()
@@ -310,7 +326,7 @@ class TestMarketDataPipeline:
         assert "metrics" in health
 
     @pytest.mark.asyncio
-    async def test_current_price_storage(self, pipeline):
+    async def test_current_price_storage(self, pipeline: MarketDataPipeline) -> None:
         """Test storing current price data."""
         # Create test ticker data
         test_ticker = TickerData(
@@ -330,7 +346,9 @@ class TestMarketDataPipeline:
         await pipeline._process_single_ticker("BTCUSDT", test_ticker)
 
         # Verify data was stored in PostgreSQL
-        stored_price = await pipeline.connection_manager.postgres.fetchrow(
+        cm = pipeline.connection_manager
+        assert cm is not None
+        stored_price = await cm.postgres.fetchrow(
             "SELECT * FROM current_prices WHERE symbol = 'BTCUSDT'"
         )
 
@@ -339,26 +357,30 @@ class TestMarketDataPipeline:
         assert stored_price["symbol"] == "BTCUSDT"
 
         # Verify data was cached in Redis
-        cached_price = await pipeline.connection_manager.redis.get("price:BTCUSDT")
+        cm = pipeline.connection_manager
+        assert cm is not None
+        cached_price = await cm.redis.get("price:BTCUSDT")
         assert cached_price is not None
         assert Decimal(cached_price) == test_ticker.price
 
         # Verify ticker JSON was cached
-        ticker_json = await pipeline.connection_manager.redis.get("ticker:BTCUSDT")
+        cm = pipeline.connection_manager
+        assert cm is not None
+        ticker_json = await cm.redis.get("ticker:BTCUSDT")
         assert ticker_json is not None
         ticker_data = json.loads(ticker_json)
         assert ticker_data["symbol"] == "BTCUSDT"
         assert Decimal(ticker_data["price"]) == test_ticker.price
 
     @pytest.mark.asyncio
-    async def test_data_quality_monitoring(self, pipeline):
+    async def test_data_quality_monitoring(self, pipeline: MarketDataPipeline) -> None:
         """Test data quality monitoring."""
         # Create test ticker with poor quality data
         poor_quality_ticker = TickerData(
             symbol="TESTUSDT",
             price=Decimal("100.00"),
-            bid_price=None,  # Missing bid price
-            ask_price=None,  # Missing ask price
+            bid_price=Decimal("0"),  # Use zero to represent missing
+            ask_price=Decimal("0"),  # Use zero to represent missing
             volume_24h=Decimal("0"),  # Zero volume
             price_change_24h=Decimal("0"),
             price_change_percent_24h=Decimal("0"),
@@ -372,7 +394,9 @@ class TestMarketDataPipeline:
         await pipeline._process_single_ticker("TESTUSDT", poor_quality_ticker)
 
         # Check data quality metrics were stored
-        quality_metrics = await pipeline.connection_manager.postgres.fetch(
+        cm = pipeline.connection_manager
+        assert cm is not None
+        quality_metrics = await cm.postgres.fetch(
             "SELECT * FROM data_quality_metrics WHERE symbol = 'TESTUSDT' ORDER BY timestamp DESC LIMIT 1"
         )
 
@@ -384,15 +408,21 @@ class TestMarketDataPipeline:
         assert metric["alert_level"] in ["warning", "error"]  # Should trigger alert
 
     @pytest.mark.asyncio
-    async def test_get_current_price_fallback(self, pipeline):
+    async def test_get_current_price_fallback(
+        self, pipeline: MarketDataPipeline
+    ) -> None:
         """Test current price retrieval with fallback."""
         # Store test data in PostgreSQL
-        await pipeline.connection_manager.postgres.execute(
+        cm = pipeline.connection_manager
+        assert cm is not None
+        await cm.postgres.execute(
             "INSERT INTO current_prices (symbol, price, timestamp) VALUES ('FALLBACKUSDT', 123.45, CURRENT_TIMESTAMP) ON CONFLICT (symbol) DO UPDATE SET price = EXCLUDED.price",
         )
 
         # Clear Redis cache to test PostgreSQL fallback
-        await pipeline.connection_manager.redis.delete("price:FALLBACKUSDT")
+        cm = pipeline.connection_manager
+        assert cm is not None
+        await cm.redis.delete("price:FALLBACKUSDT")
 
         # Get price (should fallback to PostgreSQL)
         price = await pipeline.get_current_price("FALLBACKUSDT")
@@ -401,9 +431,9 @@ class TestMarketDataPipeline:
         assert price == Decimal("123.45")
 
         # Now cache the price in Redis
-        await pipeline.connection_manager.redis.set(
-            "price:FALLBACKUSDT", "456.78", ex=300
-        )
+        cm = pipeline.connection_manager
+        assert cm is not None
+        await cm.redis.set("price:FALLBACKUSDT", "456.78", ex=300)
 
         # Get price again (should use Redis cache)
         cached_price = await pipeline.get_current_price("FALLBACKUSDT")
@@ -411,7 +441,9 @@ class TestMarketDataPipeline:
         assert cached_price == Decimal("456.78")  # Should get Redis value
 
     @pytest.mark.asyncio
-    async def test_historical_data_processing(self, pipeline):
+    async def test_historical_data_processing(
+        self, pipeline: MarketDataPipeline
+    ) -> None:
         """Test historical data fetching and storage."""
         # This test requires actual Binance API access
         # Skip if running in CI/CD without API keys
@@ -431,7 +463,7 @@ class TestMarketDataPipeline:
             pytest.skip(f"Skipping historical data test due to API error: {e}")
 
     @pytest.mark.asyncio
-    async def test_pipeline_metrics(self, pipeline):
+    async def test_pipeline_metrics(self, pipeline: MarketDataPipeline) -> None:
         """Test that pipeline metrics are correctly updated."""
         # Get initial metrics
         initial_health = await pipeline.get_pipeline_health()
@@ -449,7 +481,7 @@ class TestMarketDataPipeline:
         assert updated_metrics["avg_processing_time"] >= 0
 
     @pytest.mark.asyncio
-    async def test_db_constraints(self, pipeline):
+    async def test_db_constraints(self, pipeline: MarketDataPipeline) -> None:
         """Test database constraints are enforced."""
         # Test constraint violation (negative price should fail)
         with pytest.raises(asyncpg.exceptions.CheckViolationError):
@@ -459,10 +491,12 @@ class TestMarketDataPipeline:
                 price_change_24h, price_change_percent_24h, high_24h, low_24h, timestamp
             ) VALUES ('ETHUSDT', -100.00, NULL, NULL, 0, 0, 0, 100, 100, CURRENT_TIMESTAMP)
             """
-            await pipeline.connection_manager.postgres.execute(invalid_insert)
+            cm = pipeline.connection_manager
+            assert cm is not None
+            await cm.postgres.execute(invalid_insert)
 
     @pytest.mark.asyncio
-    async def test_pipeline_health_check(self, pipeline):
+    async def test_pipeline_health_check(self, pipeline: MarketDataPipeline) -> None:
         """Test the pipeline health check functionality."""
         # Get initial metrics
         initial_health = await pipeline.get_pipeline_health()
@@ -484,7 +518,7 @@ class TestEndToEndIntegration:
     """Test complete end-to-end data pipeline integration."""
 
     @pytest.mark.asyncio
-    async def test_complete_data_flow(self):
+    async def test_complete_data_flow(self) -> None:
         """Test complete data flow from API to storage."""
         # Initialize pipeline
         pipeline = MarketDataPipeline()
@@ -510,19 +544,25 @@ class TestEndToEndIntegration:
             await pipeline._process_single_ticker("BTCUSDT", test_ticker)
 
             # Verify data exists in PostgreSQL
-            pg_data = await pipeline.connection_manager.postgres.fetchrow(
+            cm = pipeline.connection_manager
+            assert cm is not None
+            pg_data = await cm.postgres.fetchrow(
                 "SELECT * FROM current_prices WHERE symbol = 'BTCUSDT'"
             )
             assert pg_data is not None
             assert Decimal(str(pg_data["price"])) == test_ticker.price
 
             # Verify data exists in Redis
-            redis_price = await pipeline.connection_manager.redis.get("price:BTCUSDT")
+            cm = pipeline.connection_manager
+            assert cm is not None
+            redis_price = await cm.redis.get("price:BTCUSDT")
             assert redis_price is not None
             assert Decimal(redis_price) == test_ticker.price
 
             # Verify data quality was recorded
-            quality_data = await pipeline.connection_manager.postgres.fetch(
+            cm = pipeline.connection_manager
+            assert cm is not None
+            quality_data = await cm.postgres.fetch(
                 "SELECT * FROM data_quality_metrics WHERE symbol = 'BTCUSDT' ORDER BY timestamp DESC LIMIT 1"
             )
             assert len(quality_data) > 0
@@ -540,7 +580,7 @@ class TestEndToEndIntegration:
             await pipeline.stop_pipeline()
 
     @pytest.mark.asyncio
-    async def test_error_handling_and_recovery(self):
+    async def test_error_handling_and_recovery(self) -> None:
         """Test pipeline error handling and recovery."""
         pipeline = MarketDataPipeline()
         await pipeline.initialize()
@@ -550,14 +590,14 @@ class TestEndToEndIntegration:
             invalid_ticker = TickerData(
                 symbol="INVALID",
                 price=Decimal("-100"),  # Invalid negative price
-                bid_price=None,
-                ask_price=None,
-                volume_24h=None,
-                price_change_24h=None,
-                price_change_percent_24h=None,
-                high_24h=None,
-                low_24h=None,
-                timestamp=None,
+                bid_price=Decimal("0"),
+                ask_price=Decimal("0"),
+                volume_24h=Decimal("0"),
+                price_change_24h=Decimal("0"),
+                price_change_percent_24h=Decimal("0"),
+                high_24h=Decimal("0"),
+                low_24h=Decimal("0"),
+                timestamp=datetime.now(timezone.utc),
             )
 
             # This should not crash the pipeline
@@ -594,7 +634,7 @@ class TestEndToEndIntegration:
 
 # Test configuration and fixtures
 @pytest.fixture(scope="session")
-def event_loop():
+def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
     """Create event loop for async tests."""
     loop = asyncio.new_event_loop()
     yield loop
@@ -602,7 +642,7 @@ def event_loop():
 
 
 @pytest.fixture(autouse=True)
-async def cleanup_test_data():
+async def cleanup_test_data() -> AsyncGenerator[None, None]:
     """Cleanup test data after each test."""
     yield
 
@@ -640,7 +680,7 @@ async def cleanup_test_data():
 
 # Skip integration tests if no credentials
 @pytest.fixture(autouse=True)
-def skip_if_no_credentials():
+def skip_if_no_credentials() -> None:
     """Skip integration tests if credentials are not available."""
     try:
         config = get_config()

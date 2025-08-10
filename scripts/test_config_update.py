@@ -29,9 +29,9 @@ def test_configuration_loading():
 
     # 1. Setup mock environment
     base_dir = Path(__file__).parent.parent
-    env_file = base_dir / ".env.example"
+    env_file = base_dir / ".env.template"
     load_configuration(env_file_path=env_file)
-    print_status("Loaded .env.example for base configuration", "setup")
+    print_status("Loaded .env.template for base configuration", "setup")
 
     # 2. Get initial config and verify
     initial_config = get_config()
