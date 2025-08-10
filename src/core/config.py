@@ -162,7 +162,9 @@ class TradingConfig:
         if self.grid_spacing_percent <= 0:
             self._validation_errors.append("grid_spacing_percent must be positive")
         if not self.default_trading_pairs:
-            self._validation_errors.append("At least one trading pair must be specified")
+            self._validation_errors.append(
+                "At least one trading pair must be specified"
+            )
         # Validate drawdown percent
         if not (Decimal("0") <= self.max_account_drawdown_percent <= Decimal("100")):
             self._validation_errors.append(
@@ -170,14 +172,20 @@ class TradingConfig:
             )
         # Validate symbol format (e.g., BTCUSDT)
         if self.default_trading_pairs and not all(
-            isinstance(p, str) and p.endswith("USDT") and len(p) > 4 for p in self.default_trading_pairs
+            isinstance(p, str) and p.endswith("USDT") and len(p) > 4
+            for p in self.default_trading_pairs
         ):
             self._validation_errors.append("Invalid trading pair format")
 
     def _validate_database_config(self) -> None:
         """Validate database connection settings."""
         # Database is optional for unit tests; only validate if any field is set
-        db_vars = [self.neon_username, self.neon_password, self.neon_database, self.neon_host]
+        db_vars = [
+            self.neon_username,
+            self.neon_password,
+            self.neon_database,
+            self.neon_host,
+        ]
         if any(db_vars) and not all(db_vars + [self.neon_port]):
             self._validation_errors.append("All PostgreSQL variables are required.")
         if self.neon_port and not 1 <= self.neon_port <= 65535:
@@ -197,9 +205,16 @@ class TradingConfig:
     def _validate_r2_config(self) -> None:
         """Validate R2/S3 storage settings."""
         # R2 is optional for unit tests; only validate if any field is set
-        r2_vars = [self.r2_account_id, self.r2_access_key, self.r2_secret_key, self.r2_bucket_name]
+        r2_vars = [
+            self.r2_account_id,
+            self.r2_access_key,
+            self.r2_secret_key,
+            self.r2_bucket_name,
+        ]
         if any(r2_vars) and not all(r2_vars):
-            self._validation_errors.append("All R2 configuration variables are required.")
+            self._validation_errors.append(
+                "All R2 configuration variables are required."
+            )
 
     def _validate_api_keys(self) -> None:
         """Validate Binance API key and secret format."""
@@ -217,7 +232,9 @@ class TradingConfig:
     def get_postgresql_url(self) -> str:
         """Build PostgreSQL connection URL from individual parameters."""
         # Return empty string if not fully configured (so tests can skip integration)
-        if not all([self.neon_username, self.neon_password, self.neon_host, self.neon_database]):
+        if not all(
+            [self.neon_username, self.neon_password, self.neon_host, self.neon_database]
+        ):
             return ""
         return (
             f"postgresql://{self.neon_username}:{self.neon_password}@"
@@ -236,7 +253,9 @@ class TradingConfig:
             auth_part = f":{self.upstash_redis_password}@"
 
         # Use rediss:// (SSL) for Upstash Redis
-        return f"rediss://{auth_part}{self.upstash_redis_host}:{self.upstash_redis_port}"
+        return (
+            f"rediss://{auth_part}{self.upstash_redis_host}:{self.upstash_redis_port}"
+        )
 
     def get_r2_config(self) -> Dict[str, str]:
         """Get Cloudflare R2 configuration as dictionary."""
