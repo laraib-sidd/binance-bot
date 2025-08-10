@@ -24,7 +24,7 @@ class APIIngestManager:
         self.rate_limiters = {}    # Per-exchange rate limiting
         self.circuit_breakers = {} # Fault tolerance
         self.data_queues = {}      # Async data queues
-        
+
     async def ingest_market_data(self, symbols: List[str]) -> AsyncGenerator:
         """High-throughput market data ingestion"""
         # Concurrent data fetching with backpressure handling
@@ -54,7 +54,7 @@ class DataProcessor:
             OHLCValidator(),       # OHLC relationship validation
             CrossPairValidator()   # Cross-pair arbitrage validation
         ]
-        
+
     async def process_market_data(self, raw_data: Dict) -> MarketData:
         """Multi-stage validation and processing pipeline"""
         # Stage 1: Data type conversion with Decimal precision
@@ -80,13 +80,13 @@ class StorageManager:
     def __init__(self):
         # Hot storage (sub-second access)
         self.cache = RedisTimeSeriesCache()  # Last 1 hour of data
-        
+
         # Warm storage (second-level access)
         self.timeseries_db = InfluxDBStore()  # Last 30 days
-        
+
         # Cold storage (batch access)
         self.archive = ParquetArchive()  # Historical data
-        
+
         # Metadata storage
         self.metadata = SQLiteMetadata()  # Trading rules, configs
 ```
@@ -111,15 +111,15 @@ class MarketDataQuery:
         self.storage = storage_manager
         self.query_optimizer = QueryOptimizer()
         self.cache = QueryCache(ttl=1)  # 1-second cache
-        
+
     async def get_realtime_price(self, symbol: str) -> Decimal:
         """Sub-100ms price retrieval"""
-        
-    async def get_ohlcv_data(self, symbol: str, timeframe: str, 
+
+    async def get_ohlcv_data(self, symbol: str, timeframe: str,
                            limit: int) -> DataFrame:
         """Optimized OHLCV data retrieval"""
-        
-    async def get_volume_profile(self, symbol: str, 
+
+    async def get_volume_profile(self, symbol: str,
                                window: timedelta) -> VolumeProfile:
         """Volume analysis for grid sizing"""
 ```
@@ -133,25 +133,25 @@ class MarketDataQuery:
 # File: src/data/market_data.py
 class MarketDataFetcher:
     """Real-time market data fetching with validation"""
-    
+
     async def fetch_ticker_data(self, symbols: List[str]) -> Dict[str, TickerData]:
         """Fetch current prices for multiple symbols"""
-        
-    async def fetch_ohlcv_data(self, symbol: str, interval: str, 
+
+    async def fetch_ohlcv_data(self, symbol: str, interval: str,
                               limit: int = 500) -> List[KlineData]:
         """Fetch historical OHLCV data"""
-        
-    async def start_realtime_stream(self, symbols: List[str], 
+
+    async def start_realtime_stream(self, symbols: List[str],
                                   callback: Callable) -> None:
         """Start real-time price stream"""
 
-# File: src/data/data_validator.py  
+# File: src/data/data_validator.py
 class DataValidator:
     """Financial-grade data validation"""
-    
+
     def validate_ticker_data(self, data: TickerData) -> ValidationResult:
         """Comprehensive ticker validation"""
-        
+
     def validate_ohlcv_data(self, data: List[KlineData]) -> ValidationResult:
         """OHLCV consistency validation"""
 ```
@@ -161,27 +161,27 @@ class DataValidator:
 # File: src/data/storage_manager.py
 class StorageManager:
     """Multi-tier data storage management"""
-    
+
     def __init__(self, config: StorageConfig):
         self.csv_store = CSVTimeSeriesStore(config.data_directory)
         self.metadata_store = SQLiteStore(config.metadata_db)
-        
+
     async def store_market_data(self, data: List[MarketData]) -> None:
         """Store market data with automatic partitioning"""
-        
-    async def retrieve_historical_data(self, symbol: str, 
-                                     start: datetime, 
+
+    async def retrieve_historical_data(self, symbol: str,
+                                     start: datetime,
                                      end: datetime) -> DataFrame:
         """Efficient historical data retrieval"""
 
 # File: src/data/csv_store.py
 class CSVTimeSeriesStore:
     """Optimized CSV storage for time series data"""
-    
+
     def store_ohlcv(self, symbol: str, data: DataFrame) -> None:
         """Store OHLCV data with date partitioning"""
         # Partitioning: data/{symbol}/{year}/{month}/ohlcv_{date}.csv
-        
+
     def store_ticker(self, symbol: str, data: DataFrame) -> None:
         """Store real-time ticker data"""
         # Rolling files: data/{symbol}/ticker_{hour}.csv
@@ -192,18 +192,18 @@ class CSVTimeSeriesStore:
 # File: src/data/data_monitor.py
 class DataQualityMonitor:
     """Real-time data quality monitoring"""
-    
+
     def __init__(self):
         self.metrics = DataQualityMetrics()
         self.alerts = AlertManager()
-        
+
     async def monitor_data_flow(self) -> None:
         """Continuous data quality monitoring"""
         # Latency monitoring
         # Gap detection
         # Outlier detection
         # Cross-exchange validation
-        
+
     def generate_quality_report(self) -> DataQualityReport:
         """Generate data quality reports"""
 ```
@@ -224,7 +224,7 @@ class MarketDataPoint:
     spread: Decimal
     source: str  # 'binance', 'coinbase', etc.
     quality_score: float  # 0.0-1.0 data quality metric
-    
+
     # Derived fields
     price_change_1m: Optional[Decimal] = None
     volume_avg_5m: Optional[Decimal] = None
@@ -243,7 +243,7 @@ class OHLCVData:
     volume: Decimal
     trades: int
     taker_buy_volume: Decimal
-    
+
     # Validation fields
     is_validated: bool = False
     validation_score: float = 1.0
@@ -303,18 +303,18 @@ local/data/
 ```python
 class SecureDataHandler:
     """Security-first data handling"""
-    
+
     def __init__(self):
         # No sensitive data in logs
         self.logger = create_secure_logger()
-        
+
         # Encrypted storage for sensitive config
         self.secure_store = EncryptedConfigStore()
-        
+
     def sanitize_log_data(self, data: Dict) -> Dict:
         """Remove sensitive data from logs"""
         # Remove API keys, account balances, personal data
-        
+
     def validate_data_access(self, request: DataRequest) -> bool:
         """Validate data access permissions"""
 ```
@@ -331,16 +331,16 @@ class SecureDataHandler:
 ```python
 class GridTradingDataProvider:
     """Specialized data provider for grid trading"""
-    
-    async def get_volatility_window(self, symbol: str, 
+
+    async def get_volatility_window(self, symbol: str,
                                   hours: int = 24) -> Decimal:
         """ATR-based volatility for grid sizing"""
-        
-    async def get_support_resistance(self, symbol: str, 
+
+    async def get_support_resistance(self, symbol: str,
                                    timeframe: str) -> SRLevels:
         """Support/resistance for grid placement"""
-        
-    async def get_volume_profile(self, symbol: str, 
+
+    async def get_volume_profile(self, symbol: str,
                                days: int = 7) -> VolumeProfile:
         """Volume distribution for order sizing"""
 ```
@@ -349,12 +349,12 @@ class GridTradingDataProvider:
 ```python
 class SignalDataPipeline:
     """Real-time signal generation data pipeline"""
-    
+
     async def stream_technical_indicators(self, symbol: str) -> AsyncGenerator:
         """Stream real-time technical indicators"""
         # RSI, MACD, Bollinger Bands, ATR
         # Updated every minute with live data
-        
+
     async def detect_market_regime(self, symbol: str) -> MarketRegime:
         """Detect trending vs ranging markets"""
         # Used for grid strategy adaptation
@@ -364,7 +364,7 @@ class SignalDataPipeline:
 
 ### **Multi-Exchange Architecture**
 - **Normalized Data Models**: Consistent schema across exchanges
-- **Exchange Adapters**: Plugin architecture for new exchanges  
+- **Exchange Adapters**: Plugin architecture for new exchanges
 - **Cross-Exchange Arbitrage**: Price comparison and opportunity detection
 - **Data Federation**: Unified query interface across exchanges
 
@@ -385,4 +385,4 @@ As a senior data engineer, you'll appreciate that we're building a **production-
 3. **Financial-Grade Quality**: Comprehensive validation and monitoring
 4. **Real-Time Performance**: Sub-second data access for trading decisions
 
-**Ready to dive into the implementation?** We'll start with the core market data fetcher and build up to the full pipeline over the 3-day phase. 
+**Ready to dive into the implementation?** We'll start with the core market data fetcher and build up to the full pipeline over the 3-day phase.

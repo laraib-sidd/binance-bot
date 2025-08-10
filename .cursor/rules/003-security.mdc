@@ -1,6 +1,6 @@
 ---
-description: 
-globs: 
+description:
+globs:
 alwaysApply: false
 ---
 # Trading Bot Security & Financial Safety Rules
@@ -23,7 +23,7 @@ from dataclasses import dataclass
 class TradingConfig:
     api_key: str = os.getenv("BINANCE_API_KEY")
     api_secret: str = os.getenv("BINANCE_API_SECRET")
-    
+
     def validate(self):
         if not self.api_key or not self.api_secret:
             raise ValueError("API credentials not found in environment")
@@ -50,19 +50,19 @@ All financial calculations must be validated and protected against manipulation
 ```python
 def validate_price_data(price: float, symbol: str) -> bool:
     """Validate price data against sanity checks"""
-    
+
     # Basic sanity checks
     if price <= 0:
         raise ValueError(f"Invalid price {price} for {symbol}")
-    
+
     # Check against reasonable bounds (prevent manipulation)
     if price > MAX_REASONABLE_PRICE[symbol]:
         raise ValueError(f"Price {price} exceeds reasonable bounds for {symbol}")
-    
+
     # Check for decimal precision issues
     if len(str(price).split('.')[-1]) > 8:
         raise ValueError(f"Price precision too high: {price}")
-    
+
     return True
 ```
 
@@ -70,20 +70,20 @@ def validate_price_data(price: float, symbol: str) -> bool:
 ```python
 def validate_order(order_size: float, price: float, balance: float) -> bool:
     """Validate order parameters before execution"""
-    
+
     # Size validation
     if order_size <= 0:
         raise ValueError("Order size must be positive")
-    
+
     # Balance validation
     required_balance = order_size * price
     if required_balance > balance * 0.95:  # Leave 5% buffer
         raise ValueError("Insufficient balance for order")
-    
+
     # Minimum order size
     if order_size < MIN_ORDER_SIZE:
         raise ValueError(f"Order size below minimum: {order_size}")
-    
+
     return True
 ```
 
@@ -92,17 +92,17 @@ Prevent any possibility of exceeding risk limits
 
 #### Position Size Validation
 ```python
-def validate_position_size(proposed_size: float, account_balance: float, 
+def validate_position_size(proposed_size: float, account_balance: float,
                          risk_per_trade: float) -> bool:
     """Ensure position size never exceeds risk limits"""
-    
+
     max_allowed_risk = account_balance * risk_per_trade
-    
+
     if proposed_size > max_allowed_risk:
         raise RiskLimitExceeded(
             f"Position size {proposed_size} exceeds max risk {max_allowed_risk}"
         )
-    
+
     return True
 ```
 
@@ -111,14 +111,14 @@ def validate_position_size(proposed_size: float, account_balance: float,
 def check_drawdown_limits(current_balance: float, initial_balance: float,
                          max_drawdown: float) -> bool:
     """Circuit breaker for maximum drawdown"""
-    
+
     drawdown = (initial_balance - current_balance) / initial_balance
-    
+
     if drawdown >= max_drawdown:
         raise DrawdownLimitExceeded(
             f"Drawdown {drawdown:.2%} exceeds limit {max_drawdown:.2%}"
         )
-    
+
     return True
 ```
 
@@ -134,10 +134,10 @@ from datetime import datetime
 audit_logger = logging.getLogger('trading.audit')
 audit_logger.setLevel(logging.INFO)
 
-def log_trade_decision(symbol: str, action: str, reason: str, 
+def log_trade_decision(symbol: str, action: str, reason: str,
                       price: float, size: float):
     """Log all trading decisions with full context"""
-    
+
     audit_logger.info({
         'timestamp': datetime.utcnow().isoformat(),
         'symbol': symbol,
@@ -153,7 +153,7 @@ def log_trade_decision(symbol: str, action: str, reason: str,
 ```python
 def log_security_event(event_type: str, details: dict):
     """Log security-related events"""
-    
+
     security_logger.warning({
         'timestamp': datetime.utcnow().isoformat(),
         'event_type': event_type,
@@ -172,11 +172,11 @@ import certifi
 
 def create_secure_session():
     """Create SSL-verified session for API calls"""
-    
+
     session = requests.Session()
     session.verify = certifi.where()  # Verify SSL certificates
     session.timeout = (5, 30)  # Connection, read timeouts
-    
+
     return session
 ```
 
@@ -186,15 +186,15 @@ class RateLimitProtection:
     def __init__(self, max_requests_per_second: int = 10):
         self.max_rps = max_requests_per_second
         self.request_times = []
-    
+
     def check_rate_limit(self):
         """Prevent API rate limit violations"""
         now = time.time()
         self.request_times = [t for t in self.request_times if now - t < 1.0]
-        
+
         if len(self.request_times) >= self.max_rps:
             raise RateLimitError("API rate limit would be exceeded")
-        
+
         self.request_times.append(now)
 ```
 
@@ -205,15 +205,15 @@ Protect against accidental live trading
 ```python
 def validate_trading_environment():
     """Ensure we're in the correct trading environment"""
-    
+
     environment = os.getenv("TRADING_ENVIRONMENT", "").upper()
-    
+
     if environment == "LIVE":
         # Additional confirmations for live trading
         confirm = input("WARNING: Live trading mode. Type 'LIVE_TRADING_CONFIRMED': ")
         if confirm != "LIVE_TRADING_CONFIRMED":
             raise EnvironmentError("Live trading not confirmed")
-    
+
     elif environment not in ["TESTNET", "PAPER", "BACKTEST"]:
         raise EnvironmentError(f"Invalid trading environment: {environment}")
 ```
@@ -222,10 +222,10 @@ def validate_trading_environment():
 ```python
 def validate_api_endpoints(config):
     """Ensure we're connecting to correct API endpoints"""
-    
+
     if config.testnet and "testnet" not in config.api_base_url.lower():
         raise SecurityError("Testnet flag set but live API URL detected")
-    
+
     if not config.testnet and "testnet" in config.api_base_url.lower():
         raise SecurityError("Live trading with testnet URL")
 ```

@@ -6,33 +6,33 @@ Helps diagnose and set up proper R2 credentials.
 """
 
 import os
-import sys
-from pathlib import Path
+
 from dotenv import load_dotenv
+
 
 def print_r2_setup_guide():
     """Print comprehensive R2 setup guide."""
     print("🔧 Cloudflare R2 Credential Setup Guide")
     print("=" * 60)
-    
+
     load_dotenv()
-    
-    account_id = os.getenv('R2_ACCOUNT_ID', '')
-    api_token = os.getenv('R2_API_TOKEN', '')
-    bucket_name = os.getenv('R2_BUCKET_NAME', '')
-    
-    print(f"📊 Current Configuration:")
+
+    account_id = os.getenv("R2_ACCOUNT_ID", "")
+    api_token = os.getenv("R2_API_TOKEN", "")
+    bucket_name = os.getenv("R2_BUCKET_NAME", "")
+
+    print("📊 Current Configuration:")
     print(f"   Account ID: {account_id}")
     print(f"   API Token Length: {len(api_token)} chars")
     print(f"   Bucket Name: {bucket_name}")
     print()
-    
+
     if len(api_token) == 40:
         print("⚠️  ISSUE DETECTED: Your API token has 40 characters")
         print("   This suggests you're using a regular Cloudflare API token")
         print("   R2 requires specific R2 API tokens or S3-compatible credentials")
         print()
-    
+
     print("🛠️  SOLUTION: Create R2 API Tokens")
     print("=" * 40)
     print()
@@ -57,7 +57,9 @@ def print_r2_setup_guide():
     print("   R2_SECRET_KEY=your_secret_key_here")
     print()
     print("🔄 **Current Issue Analysis**")
-    print(f"Your token: {api_token[:10]}...{api_token[-10:] if len(api_token) > 20 else api_token}")
+    print(
+        f"Your token: {api_token[:10]}...{api_token[-10:] if len(api_token) > 20 else api_token}"
+    )
     print(f"Length: {len(api_token)} (expected: 32 for R2 tokens)")
     print()
     print("💡 **Next Steps:**")
@@ -71,5 +73,6 @@ def print_r2_setup_guide():
     print("• Use minimal required permissions")
     print("• Rotate tokens regularly")
 
+
 if __name__ == "__main__":
-    print_r2_setup_guide() 
+    print_r2_setup_guide()

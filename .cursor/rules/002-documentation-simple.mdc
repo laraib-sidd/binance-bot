@@ -1,6 +1,6 @@
 ---
-description: 
-globs: 
+description:
+globs:
 alwaysApply: false
 ---
 # Comprehensive Documentation Guidelines
@@ -22,15 +22,15 @@ Maintain comprehensive README with:
 @mcp.tool()
 def manage_cluster(cluster_id: int, action: str, config: Dict = None) -> str:
     """Manage Databricks cluster operations with comprehensive control
-    
+
     This function provides full cluster lifecycle management including
     creation, scaling, monitoring, and cost optimization features.
-    
+
     Args:
         cluster_id (int): Unique identifier for the target cluster
         action (str): Operation to perform. Supported actions:
             - 'start': Start a stopped cluster
-            - 'stop': Stop a running cluster  
+            - 'stop': Stop a running cluster
             - 'restart': Restart cluster with latest configuration
             - 'scale': Modify cluster size (requires config)
             - 'terminate': Permanently delete cluster
@@ -38,39 +38,39 @@ def manage_cluster(cluster_id: int, action: str, config: Dict = None) -> str:
             - min_workers (int): Minimum number of worker nodes
             - max_workers (int): Maximum number of worker nodes
             - instance_type (str): Worker node instance type
-            
+
     Returns:
         str: Formatted status message with operation results including:
             - Operation success/failure status
             - Cluster state information
             - Cost impact (if applicable)
             - Performance metrics
-            
+
     Raises:
         ValueError: If cluster_id is invalid or action not supported
         ConnectionError: If unable to connect to Databricks API
         PermissionError: If insufficient privileges for operation
         ResourceError: If cluster resources unavailable
-        
+
     Examples:
         Basic cluster operations:
         >>> manage_cluster(123, 'start')
         'Cluster 123 started successfully. Status: RUNNING, Cost: $2.50/hour'
-        
+
         Scale cluster with configuration:
         >>> config = {'min_workers': 2, 'max_workers': 10}
         >>> manage_cluster(456, 'scale', config)
         'Cluster 456 scaled to 2-10 workers. New cost: $5.00-25.00/hour'
-        
+
         Error handling:
         >>> manage_cluster(999, 'start')
         ValueError: Cluster 999 not found or access denied
-        
+
     Performance:
         - Average response time: <2 seconds
         - Timeout: 30 seconds for start/stop operations
         - Retry logic: 3 attempts with exponential backoff
-        
+
     See Also:
         - list_clusters(): Get available clusters
         - get_cluster_status(): Check cluster status
@@ -92,28 +92,28 @@ graph TB
         B[SDK Users]
         C[Web Dashboard]
     end
-    
+
     subgraph "API Gateway"
         D[FastMCP Server]
         E[Request Router]
         F[Authentication]
         G[Rate Limiting]
     end
-    
+
     subgraph "Service Layer"
         H[SQL Service]
         I[Jobs Service]
         J[Clusters Service]
         K[Streaming Service]
     end
-    
+
     subgraph "External Services"
         L[Databricks SQL Warehouse]
         M[Databricks REST API]
         N[Kafka/Event Hub]
         O[Monitoring Stack]
     end
-    
+
     A --> D
     B --> D
     C --> D
@@ -151,7 +151,7 @@ Brief description of the feature and its purpose.
 graph TD
     A[Existing Component] --> B[Modified Component]
     B --> C[New Component]
-    
+
     style B fill:#ffe6cc
     style C fill:#e8f5e8
 ```
@@ -233,23 +233,23 @@ docs/
 ```python
 class DatabricsAPIClient:
     """High-level Databricks API client with comprehensive functionality
-    
+
     This client provides a unified interface to Databricks services including
     SQL warehouses, job management, cluster operations, and streaming capabilities.
     It handles authentication, retry logic, error handling, and response formatting.
-    
+
     Attributes:
         host (str): Databricks workspace URL
         token (str): Authentication token with appropriate permissions
         timeout (int): Request timeout in seconds (default: 30)
         retry_count (int): Number of retry attempts (default: 3)
-        
+
     Example:
         Basic client usage:
         >>> client = DatabricsAPIClient("dbc-abc123.cloud.databricks.com", token)
         >>> tables = client.list_tables()
         >>> result = client.run_query("SELECT COUNT(*) FROM my_table")
-        
+
         Advanced configuration:
         >>> client = DatabricsAPIClient(
         ...     host="dbc-abc123.cloud.databricks.com",
@@ -258,16 +258,16 @@ class DatabricsAPIClient:
         ...     retry_count=5
         ... )
     """
-    
+
     def __init__(self, host: str, token: str, timeout: int = 30, retry_count: int = 3):
         """Initialize Databricks API client with configuration
-        
+
         Args:
             host: Databricks workspace hostname (without https://)
             token: Personal access token or service principal token
             timeout: Request timeout in seconds
             retry_count: Number of retry attempts for failed requests
-            
+
         Raises:
             ValueError: If host or token is empty/invalid
             ConnectionError: If unable to validate connection
@@ -303,25 +303,25 @@ class DatabricsAPIClient:
 ```python
 def test_api_documentation_examples():
     """Verify that all documentation examples actually work"""
-    
+
     # Test README examples
     assert run_documented_example("readme_basic_usage") == expected_output
-    
-    # Test API reference examples  
+
+    # Test API reference examples
     assert run_documented_example("api_cluster_management") == expected_output
-    
+
     # Test migration guide examples
     assert run_documented_example("v1_to_v2_migration") == expected_output
 
 def validate_documentation_links():
     """Ensure all documentation links are valid and up-to-date"""
-    
+
     # Check internal links
     assert validate_internal_links("docs/") == []
-    
+
     # Check external links
     assert validate_external_links("docs/") == []
-    
+
     # Check code examples compile
     assert validate_code_examples("docs/") == []
 ```

@@ -1,6 +1,6 @@
 ---
-description: 
-globs: 
+description:
+globs:
 alwaysApply: false
 ---
 # Comprehensive PR Process
@@ -11,7 +11,7 @@ Every PR should provide a complete picture of the changes being made. Since this
 ## Branch Naming
 Use descriptive branch names with prefixes:
 - `feat/add-cluster-management` - New functionality
-- `fix/connection-retry-logic` - Bug fixes  
+- `fix/connection-retry-logic` - Bug fixes
 - `docs/api-usage-examples` - Documentation updates
 - `refactor/error-handling` - Code improvements
 - `arch/add-streaming-pipeline` - Architecture changes
@@ -21,7 +21,7 @@ Use descriptive branch names with prefixes:
 ### 1. Architecture Diagrams (Required)
 Every PR must include a Mermaid diagram showing:
 - **System flow changes**
-- **API interaction patterns** 
+- **API interaction patterns**
 - **Data flow**
 - **Component relationships**
 
@@ -33,7 +33,7 @@ graph TD
     C --> D[Databricks Clusters API]
     D --> E[Format cluster data]
     E --> F[Return formatted table]
-    
+
     style B fill:#e1f5fe
     style D fill:#f3e5f5
 ```
@@ -45,11 +45,11 @@ graph TD
     B --> C[Databricks SQL Handler]
     B --> D[Databricks REST Handler]
     B --> E[New: Streaming Handler]
-    
+
     C --> F[SQL Warehouse]
     D --> G[REST API]
     E --> H[Kafka/Event Hub]
-    
+
     style E fill:#e8f5e8
     style H fill:#e8f5e8
 ```
@@ -83,7 +83,7 @@ Brief description of what this PR accomplishes and why.
 
 ## 🔄 Changes
 - **Added**: New functions/features
-- **Modified**: Existing functionality changes  
+- **Modified**: Existing functionality changes
 - **Removed**: Deprecated features
 - **Fixed**: Bug fixes
 
@@ -138,7 +138,7 @@ sequenceDiagram
     participant U as User
     participant API as API Server
     participant DB as Databricks
-    
+
     U->>API: Request cluster list
     API->>DB: Call clusters/list
     DB-->>API: Return cluster data
@@ -154,19 +154,19 @@ graph TB
         A[FastMCP Server]
         B[Request Router]
     end
-    
+
     subgraph "Service Layer"
         C[SQL Service]
         D[REST Service]
         E[Streaming Service]
     end
-    
+
     subgraph "External"
         F[Databricks SQL]
         G[Databricks REST]
         H[Kafka]
     end
-    
+
     A --> B
     B --> C
     B --> D
@@ -183,26 +183,26 @@ graph TB
 @mcp.tool()
 def manage_cluster(cluster_id: int, action: str) -> str:
     """Manage Databricks cluster operations
-    
+
     This function provides comprehensive cluster management capabilities
     including start, stop, restart, and configuration updates.
-    
+
     Args:
         cluster_id (int): The unique identifier of the cluster
         action (str): The action to perform ('start', 'stop', 'restart', 'configure')
-        
+
     Returns:
         str: Formatted status message with operation result
-        
+
     Raises:
         ValueError: If cluster_id is invalid or action is not supported
         ConnectionError: If unable to connect to Databricks API
-        
+
     Examples:
         >>> manage_cluster(123, 'restart')
         'Cluster 123 restarted successfully at 2024-01-15 10:30:00'
-        
-        >>> manage_cluster(456, 'stop')  
+
+        >>> manage_cluster(456, 'stop')
         'Cluster 456 stopped successfully'
     """
 ```

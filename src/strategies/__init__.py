@@ -1,3 +1,3 @@
 """
 Trading strategies implementation
-""" 
+"""
