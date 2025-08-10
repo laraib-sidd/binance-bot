@@ -63,7 +63,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Updated integration tests to use new configuration methods
     - Created test_config_update.py for validation of configuration changes
   - **Environment Configuration**:
-    - .env.example already contains individual parameters (no changes needed)
+    - .env.template already contains individual parameters (no changes needed)
     - Backward compatibility maintained for existing URL-based configurations
   - Context: Individual parameters provide better flexibility and security for deployment
   - Impact: More flexible database configuration, easier credential management, better cloud deployment support
@@ -218,7 +218,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - test_environment.py: Comprehensive environment testing with 5 test categories
     - setup_dev_environment.py: Automated environment setup with UV/pip detection
     - Modern dependency management with pyproject.toml
-    - Sample configuration file generation (.env.example, config.example.py)
+    - Sample configuration file generation (.env.template, config.example.py)
     - UV setup guide (uv_setup.md) for fast modern development
   - **Advanced Logging System** (src/utils/logging.py):
     - TradingLoggerAdapter with trading-specific context
@@ -240,7 +240,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Script commands available via `helios-*` CLI tools
   - **Scripts Organization & .env Configuration** (2024-12-22):
     - Moved setup and test scripts to `scripts/` directory for better organization
-    - Created comprehensive `.env.example` file with all configuration options
+    - Created comprehensive `.env.template` file with all configuration options
     - Updated README.md with modern setup instructions using .env file
     - Scripts now automatically load from .env file without manual exports
     - Updated pyproject.toml script references for new script locations

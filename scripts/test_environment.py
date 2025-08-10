@@ -192,14 +192,14 @@ def test_configuration_loading():
             print(
                 "     💡 Create .env file with BINANCE_API_KEY and BINANCE_API_SECRET"
             )
-            print("     💡 Or copy .env.example to .env and edit it")
+            print("     💡 Or copy .env.template to .env and edit it")
 
         return True
 
     except Exception as e:
         print(f"  ❌ Configuration loading failed: {e}")
         print("  💡 Solution: Create .env file with your API credentials")
-        print("     cp .env.example .env")
+        print("     cp .env.template .env")
         print("     # Then edit .env with your actual API keys")
         return False
 
@@ -289,7 +289,7 @@ def test_api_connectivity():
 
 def create_sample_env_file():
     """Create a sample .env file if it doesn't exist."""
-    env_file = project_root / ".env.example"
+    env_file = project_root / ".env.template"
 
     if env_file.exists():
         return

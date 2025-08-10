@@ -72,7 +72,7 @@ python3 scripts/test_environment.py
 **Step 2: Configure Credentials**
 ```bash
 # Copy the example environment file
-cp .env.example .env
+cp .env.template .env
 
 # Edit .env file with your API credentials
 # BINANCE_API_KEY=your_actual_api_key_here

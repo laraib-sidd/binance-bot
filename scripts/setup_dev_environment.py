@@ -298,7 +298,7 @@ class EnvironmentSetup:
         """Create sample configuration files."""
         print("\n⚙️  Creating Sample Configuration Files...")
 
-        # Create .env.example
+        # Create .env.template
         env_example_content = """# Helios Trading Bot Environment Configuration
 # Copy this file to .env and fill in your actual values
 
@@ -358,18 +358,18 @@ EXAMPLE_CONFIG = TradingConfig(
 
         created_files = []
 
-        # Create .env.example
-        env_example_file = self.project_root / ".env.example"
+        # Create .env.template
+        env_example_file = self.project_root / ".env.template"
         if not env_example_file.exists() or self.force:
             try:
                 with open(env_example_file, "w") as f:
                     f.write(env_example_content)
-                created_files.append(".env.example")
-                print("  ✅ Created .env.example")
+                created_files.append(".env.template")
+                print("  ✅ Created .env.template")
             except Exception as e:
-                print(f"  ❌ Failed to create .env.example: {e}")
+                print(f"  ❌ Failed to create .env.template: {e}")
         else:
-            print("  ✓  .env.example already exists")
+            print("  ✓  .env.template already exists")
 
         # Create config.example.py
         config_example_file = self.project_root / "config.example.py"
@@ -573,7 +573,7 @@ docs/_build/
             else:
                 print("Your development environment is ready!")
                 print("\nNext steps:")
-                print("1. Copy .env.example to .env and add your API credentials")
+                print("1. Copy .env.template to .env and add your API credentials")
                 print("2. Run: python test_environment.py")
                 print("3. Start Phase 1 development!")
         else:

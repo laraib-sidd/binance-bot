@@ -73,7 +73,7 @@ uv pip install -e .[backtest]     # Backtesting tools
 
 ```bash
 # Create .env file with your API credentials (RECOMMENDED)
-cp .env.example .env
+cp .env.template .env
 # Edit .env with your actual Binance testnet API keys
 
 # Alternative: Set environment variables (temporary)
