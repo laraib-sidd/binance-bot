@@ -29,6 +29,7 @@ from .connection_managers import ConnectionManager, get_connection_manager
 
 logger = get_logger(__name__)
 
+
 class DatabaseSchema:
     """Manages database schema creation and migrations."""
 
@@ -75,9 +76,7 @@ class DatabaseSchema:
         # Set search path for this session
         cm = self.connection_manager
         assert cm is not None
-        await cm.postgres.execute(
-            f"SET search_path = {self.schema_name}, public"
-        )
+        await cm.postgres.execute(f"SET search_path = {self.schema_name}, public")
 
         # Create tables in dependency order
         await self._create_current_prices_table()
@@ -133,7 +132,7 @@ class DatabaseSchema:
             (TimeIntervals.INTERVAL_5M, DatabaseSchemaConstants.TIME_DESC_5M),
             (TimeIntervals.INTERVAL_1H, DatabaseSchemaConstants.TIME_DESC_1H),
             (TimeIntervals.INTERVAL_4H, DatabaseSchemaConstants.TIME_DESC_4H),
-            (TimeIntervals.INTERVAL_1D, DatabaseSchemaConstants.TIME_DESC_1D)
+            (TimeIntervals.INTERVAL_1D, DatabaseSchemaConstants.TIME_DESC_1D),
         ]
 
         for timeframe, description in timeframes:
@@ -242,28 +241,21 @@ class DatabaseSchema:
             # Current prices indexes
             f"CREATE INDEX IF NOT EXISTS idx_current_prices_timestamp ON {self.schema_name}.current_prices (timestamp DESC)",
             f"CREATE INDEX IF NOT EXISTS idx_current_prices_updated_at ON {self.schema_name}.current_prices (updated_at DESC)",
-
             # OHLCV indexes for each timeframe
             f"CREATE INDEX IF NOT EXISTS idx_ohlcv_1m_symbol_time ON {self.schema_name}.ohlcv_1m (symbol, timestamp DESC)",
             f"CREATE INDEX IF NOT EXISTS idx_ohlcv_1m_timestamp ON {self.schema_name}.ohlcv_1m (timestamp DESC)",
-
             f"CREATE INDEX IF NOT EXISTS idx_ohlcv_5m_symbol_time ON {self.schema_name}.ohlcv_5m (symbol, timestamp DESC)",
             f"CREATE INDEX IF NOT EXISTS idx_ohlcv_5m_timestamp ON {self.schema_name}.ohlcv_5m (timestamp DESC)",
-
             f"CREATE INDEX IF NOT EXISTS idx_ohlcv_1h_symbol_time ON {self.schema_name}.ohlcv_1h (symbol, timestamp DESC)",
             f"CREATE INDEX IF NOT EXISTS idx_ohlcv_1h_timestamp ON {self.schema_name}.ohlcv_1h (timestamp DESC)",
-
             f"CREATE INDEX IF NOT EXISTS idx_ohlcv_4h_symbol_time ON {self.schema_name}.ohlcv_4h (symbol, timestamp DESC)",
             f"CREATE INDEX IF NOT EXISTS idx_ohlcv_4h_timestamp ON {self.schema_name}.ohlcv_4h (timestamp DESC)",
-
             f"CREATE INDEX IF NOT EXISTS idx_ohlcv_1d_symbol_time ON {self.schema_name}.ohlcv_1d (symbol, timestamp DESC)",
             f"CREATE INDEX IF NOT EXISTS idx_ohlcv_1d_timestamp ON {self.schema_name}.ohlcv_1d (timestamp DESC)",
-
             # Trading sessions indexes
             f"CREATE INDEX IF NOT EXISTS idx_trading_sessions_start_time ON {self.schema_name}.trading_sessions (start_time DESC)",
             f"CREATE INDEX IF NOT EXISTS idx_trading_sessions_status ON {self.schema_name}.trading_sessions (status)",
             f"CREATE INDEX IF NOT EXISTS idx_trading_sessions_strategy ON {self.schema_name}.trading_sessions (strategy_name)",
-
             # Data quality indexes
             f"CREATE INDEX IF NOT EXISTS idx_data_quality_timestamp ON {self.schema_name}.data_quality_metrics (timestamp DESC)",
             f"CREATE INDEX IF NOT EXISTS idx_data_quality_symbol ON {self.schema_name}.data_quality_metrics (symbol)",
@@ -299,7 +291,7 @@ class DatabaseSchema:
         # Triggers for tables with updated_at columns
         triggers = [
             f"CREATE TRIGGER update_current_prices_updated_at BEFORE UPDATE ON {self.schema_name}.current_prices FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()",
-            f"CREATE TRIGGER update_trading_sessions_updated_at BEFORE UPDATE ON {self.schema_name}.trading_sessions FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
+            f"CREATE TRIGGER update_trading_sessions_updated_at BEFORE UPDATE ON {self.schema_name}.trading_sessions FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()",
         ]
 
         for trigger_sql in triggers:
@@ -322,9 +314,7 @@ class DatabaseSchema:
             # Set search path for verification
             cm = self.connection_manager
             assert cm is not None
-            await cm.postgres.execute(
-                f"SET search_path = {self.schema_name}, public"
-            )
+            await cm.postgres.execute(f"SET search_path = {self.schema_name}, public")
 
             # Check tables with explicit debugging
             tables_sql = f"""
@@ -335,20 +325,26 @@ class DatabaseSchema:
             """
 
             existing_tables = await cm.postgres.fetch(tables_sql, self.schema_name)
-            table_names: Set[str] = {row['table_name'] for row in existing_tables}
+            table_names: Set[str] = {row["table_name"] for row in existing_tables}
 
             # Debug logging
-            logger.debug(f"Schema '{self.schema_name}' tables found: {sorted(table_names)}")
+            logger.debug(
+                f"Schema '{self.schema_name}' tables found: {sorted(table_names)}"
+            )
 
         except Exception as e:
             logger.error(f"Error during table verification: {e}")
             table_names = set()
 
         expected_tables = {
-            DatabaseConstants.TABLE_CURRENT_PRICES, DatabaseConstants.TABLE_OHLCV_1M,
-            DatabaseConstants.TABLE_OHLCV_5M, DatabaseConstants.TABLE_OHLCV_1H,
-            DatabaseConstants.TABLE_OHLCV_4H, DatabaseConstants.TABLE_OHLCV_1D,
-            DatabaseConstants.TABLE_TRADING_SESSIONS, DatabaseConstants.TABLE_DATA_QUALITY_METRICS
+            DatabaseConstants.TABLE_CURRENT_PRICES,
+            DatabaseConstants.TABLE_OHLCV_1M,
+            DatabaseConstants.TABLE_OHLCV_5M,
+            DatabaseConstants.TABLE_OHLCV_1H,
+            DatabaseConstants.TABLE_OHLCV_4H,
+            DatabaseConstants.TABLE_OHLCV_1D,
+            DatabaseConstants.TABLE_TRADING_SESSIONS,
+            DatabaseConstants.TABLE_DATA_QUALITY_METRICS,
         }
 
         try:
@@ -363,29 +359,31 @@ class DatabaseSchema:
             cm = self.connection_manager
             assert cm is not None
             existing_indexes = await cm.postgres.fetch(indexes_sql, self.schema_name)
-            index_names: Set[str] = {row['indexname'] for row in existing_indexes}
+            index_names: Set[str] = {row["indexname"] for row in existing_indexes}
 
             # Debug logging
-            logger.debug(f"Schema '{self.schema_name}' indexes found: {sorted(index_names)}")
+            logger.debug(
+                f"Schema '{self.schema_name}' indexes found: {sorted(index_names)}"
+            )
 
         except Exception as e:
             logger.error(f"Error during index verification: {e}")
             index_names = set()
 
         expected_indexes = {
-            f'{DatabaseSchemaConstants.INDEX_PREFIX}current_prices_timestamp',
-            f'{DatabaseSchemaConstants.INDEX_PREFIX}ohlcv_1m_symbol_time',
-            f'{DatabaseSchemaConstants.INDEX_PREFIX}ohlcv_5m_symbol_time',
-            f'{DatabaseSchemaConstants.INDEX_PREFIX}trading_sessions_start_time'
+            f"{DatabaseSchemaConstants.INDEX_PREFIX}current_prices_timestamp",
+            f"{DatabaseSchemaConstants.INDEX_PREFIX}ohlcv_1m_symbol_time",
+            f"{DatabaseSchemaConstants.INDEX_PREFIX}ohlcv_5m_symbol_time",
+            f"{DatabaseSchemaConstants.INDEX_PREFIX}trading_sessions_start_time",
         }
 
         return {
-            'tables_exist': expected_tables.issubset(table_names),
-            'indexes_exist': len(expected_indexes.intersection(index_names)) > 0,
-            'tables_count': len(table_names.intersection(expected_tables)),
-            'indexes_count': len(index_names),
-            'missing_tables': list(expected_tables - table_names),
-            'missing_indexes': list(expected_indexes - index_names)
+            "tables_exist": expected_tables.issubset(table_names),
+            "indexes_exist": len(expected_indexes.intersection(index_names)) > 0,
+            "tables_count": len(table_names.intersection(expected_tables)),
+            "indexes_count": len(index_names),
+            "missing_tables": list(expected_tables - table_names),
+            "missing_indexes": list(expected_indexes - index_names),
         }
 
     async def get_table_stats(self) -> Dict[str, Any]:
@@ -396,9 +394,7 @@ class DatabaseSchema:
         # Set search path for stats queries
         cm = self.connection_manager
         assert cm is not None
-        await cm.postgres.execute(
-            f"SET search_path = {self.schema_name}, public"
-        )
+        await cm.postgres.execute(f"SET search_path = {self.schema_name}, public")
 
         # Simplify stats query to avoid placeholder mismatch; gather row counts below
         stats_sql = """
@@ -418,19 +414,23 @@ class DatabaseSchema:
 
         for table in tables:
             try:
-                count = await cm.postgres.fetchval(f"SELECT COUNT(*) FROM {self.schema_name}.{table}")
+                count = await cm.postgres.fetchval(
+                    f"SELECT COUNT(*) FROM {self.schema_name}.{table}"
+                )
                 row_counts[table] = count
             except Exception as e:
                 logger.warning(f"Failed to get row count for {table}: {e}")
                 row_counts[table] = 0
 
         return {
-            'row_counts': row_counts,
-            'column_stats': stats_data,
-            'total_rows': sum(row_counts.values())
+            "row_counts": row_counts,
+            "column_stats": stats_data,
+            "total_rows": sum(row_counts.values()),
         }
 
-    async def cleanup_old_data(self, days_to_keep: int = DatabaseSchemaConstants.DEFAULT_RETENTION_DAYS) -> Dict[str, int]:
+    async def cleanup_old_data(
+        self, days_to_keep: int = DatabaseSchemaConstants.DEFAULT_RETENTION_DAYS
+    ) -> Dict[str, int]:
         """Clean up old data beyond retention period."""
         if not self.connection_manager:
             await self.initialize()
@@ -451,9 +451,7 @@ class DatabaseSchema:
         # Set search path for cleanup operations
         cm = self.connection_manager
         assert cm is not None
-        await cm.postgres.execute(
-            f"SET search_path = {self.schema_name}, public"
-        )
+        await cm.postgres.execute(f"SET search_path = {self.schema_name}, public")
 
         for table in ohlcv_tables:
             delete_sql = f"""
@@ -477,13 +475,14 @@ class DatabaseSchema:
 
         try:
             await cm.postgres.execute(delete_quality_sql)
-            cleanup_counts['data_quality_metrics'] = 0
+            cleanup_counts["data_quality_metrics"] = 0
             logger.info("Cleaned up old data quality metrics")
         except Exception as e:
             logger.error(f"Failed to cleanup data quality metrics: {e}")
-            cleanup_counts['data_quality_metrics'] = -1
+            cleanup_counts["data_quality_metrics"] = -1
 
         return cleanup_counts
+
 
 # Utility functions for schema management
 async def initialize_database() -> bool:
@@ -494,6 +493,7 @@ async def initialize_database() -> bool:
 
         # Don't rely on global connection manager - create a fresh one
         from .connection_managers import ConnectionManager
+
         schema.connection_manager = ConnectionManager()
         await schema.connection_manager.connect_all()
 
@@ -502,6 +502,7 @@ async def initialize_database() -> bool:
 
         # Add a small delay to ensure tables are committed
         import asyncio
+
         await asyncio.sleep(DatabaseSchemaConstants.SCHEMA_VERIFICATION_DELAY)
 
         # Simplified verification - just check if we can query the main table
@@ -510,11 +511,17 @@ async def initialize_database() -> bool:
                 f"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '{schema.schema_name}'"
             )
 
-            if count and count >= DatabaseSchemaConstants.MINIMUM_TABLES_FOR_HEALTH:  # At least minimum core tables
-                logger.info(f"✅ Database schema initialized successfully - {count} tables created")
+            if (
+                count and count >= DatabaseSchemaConstants.MINIMUM_TABLES_FOR_HEALTH
+            ):  # At least minimum core tables
+                logger.info(
+                    f"✅ Database schema initialized successfully - {count} tables created"
+                )
                 return True
             else:
-                logger.error(f"❌ Schema verification failed - only {count} tables found")
+                logger.error(
+                    f"❌ Schema verification failed - only {count} tables found"
+                )
                 return False
 
         except Exception as verify_error:
@@ -532,6 +539,7 @@ async def initialize_database() -> bool:
             except Exception as cleanup_error:
                 logger.warning(f"Error during cleanup: {cleanup_error}")
 
+
 async def verify_database_health() -> Dict[str, Any]:
     """Verify database health and return status."""
     try:
@@ -540,16 +548,17 @@ async def verify_database_health() -> Dict[str, Any]:
         stats = await schema.get_table_stats()
 
         return {
-            'schema_valid': verification['tables_exist'] and verification['indexes_exist'],
-            'verification': verification,
-            'stats': stats,
-            'timestamp': datetime.now(timezone.utc)
+            "schema_valid": verification["tables_exist"]
+            and verification["indexes_exist"],
+            "verification": verification,
+            "stats": stats,
+            "timestamp": datetime.now(timezone.utc),
         }
 
     except Exception as e:
         logger.error(f"Database health check failed: {e}")
         return {
-            'schema_valid': False,
-            'error': str(e),
-            'timestamp': datetime.now(timezone.utc)
+            "schema_valid": False,
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc),
         }

@@ -30,14 +30,17 @@ from ..utils.logging import get_logger
 
 logger = get_logger(__name__)
 
+
 @dataclass
 class ConnectionHealth:
     """Health status for a connection."""
+
     service: str
     is_healthy: bool
     last_check: datetime
     response_time_ms: float
     error_message: Optional[str] = None
+
 
 class PostgreSQLManager:
     """
@@ -58,7 +61,7 @@ class PostgreSQLManager:
             service="postgresql",
             is_healthy=False,
             last_check=datetime.now(),
-            response_time_ms=0.0
+            response_time_ms=0.0,
         )
 
     async def connect(self) -> None:
@@ -73,9 +76,9 @@ class PostgreSQLManager:
                 max_size=self.pool_size,
                 command_timeout=10,
                 server_settings={
-                    'jit': 'off',  # Disable JIT for better performance on small queries
-                    'timezone': 'UTC'
-                }
+                    "jit": "off",  # Disable JIT for better performance on small queries
+                    "timezone": "UTC",
+                },
             )
 
             # Test connection
@@ -87,7 +90,7 @@ class PostgreSQLManager:
                 service="postgresql",
                 is_healthy=True,
                 last_check=datetime.now(),
-                response_time_ms=response_time
+                response_time_ms=response_time,
             )
 
             logger.info(f"PostgreSQL connected successfully ({response_time:.1f}ms)")
@@ -99,7 +102,7 @@ class PostgreSQLManager:
                 is_healthy=False,
                 last_check=datetime.now(),
                 response_time_ms=0.0,
-                error_message=str(e)
+                error_message=str(e),
             )
             raise
 
@@ -171,7 +174,7 @@ class PostgreSQLManager:
                 service="postgresql",
                 is_healthy=True,
                 last_check=datetime.now(),
-                response_time_ms=response_time
+                response_time_ms=response_time,
             )
         except Exception as e:
             self._health_status = ConnectionHealth(
@@ -179,10 +182,11 @@ class PostgreSQLManager:
                 is_healthy=False,
                 last_check=datetime.now(),
                 response_time_ms=0.0,
-                error_message=str(e)
+                error_message=str(e),
             )
 
         return self._health_status
+
 
 class RedisManager:
     """
@@ -202,7 +206,7 @@ class RedisManager:
             service="redis",
             is_healthy=False,
             last_check=datetime.now(),
-            response_time_ms=0.0
+            response_time_ms=0.0,
         )
 
     async def connect(self) -> None:
@@ -213,10 +217,10 @@ class RedisManager:
 
             # Configure SSL settings for Upstash Redis
             ssl_settings = {}
-            if self.redis_url.startswith('rediss://'):
+            if self.redis_url.startswith("rediss://"):
                 ssl_settings = {
-                    'ssl_cert_reqs': None,  # Don't require SSL certificates
-                    'ssl_check_hostname': False  # Don't verify hostname
+                    "ssl_cert_reqs": None,  # Don't require SSL certificates
+                    "ssl_check_hostname": False,  # Don't verify hostname
                 }
 
             self.client = redis.from_url(
@@ -226,7 +230,7 @@ class RedisManager:
                 socket_timeout=10,
                 retry_on_timeout=True,
                 health_check_interval=30,
-                **ssl_settings
+                **ssl_settings,
             )
 
             # Test connection
@@ -239,7 +243,7 @@ class RedisManager:
                 service="redis",
                 is_healthy=True,
                 last_check=datetime.now(),
-                response_time_ms=response_time
+                response_time_ms=response_time,
             )
 
             logger.info(f"Redis connected successfully ({response_time:.1f}ms)")
@@ -251,7 +255,7 @@ class RedisManager:
                 is_healthy=False,
                 last_check=datetime.now(),
                 response_time_ms=0.0,
-                error_message=str(e)
+                error_message=str(e),
             )
             raise
 
@@ -311,7 +315,7 @@ class RedisManager:
                 service="redis",
                 is_healthy=True,
                 last_check=datetime.now(),
-                response_time_ms=response_time
+                response_time_ms=response_time,
             )
         except Exception as e:
             self._health_status = ConnectionHealth(
@@ -319,10 +323,11 @@ class RedisManager:
                 is_healthy=False,
                 last_check=datetime.now(),
                 response_time_ms=0.0,
-                error_message=str(e)
+                error_message=str(e),
             )
 
         return self._health_status
+
 
 class R2Manager:
     """
@@ -349,13 +354,15 @@ class R2Manager:
         self.access_key = access_key
         self.secret_key = secret_key
         self.bucket_name = bucket_name
-        self.endpoint_url = endpoint_url or f"https://{account_id}.r2.cloudflarestorage.com"
+        self.endpoint_url = (
+            endpoint_url or f"https://{account_id}.r2.cloudflarestorage.com"
+        )
         self.client: Optional[Any] = None
         self._health_status = ConnectionHealth(
             service="r2",
             is_healthy=False,
             last_check=datetime.now(),
-            response_time_ms=0.0
+            response_time_ms=0.0,
         )
 
     async def connect(self) -> None:
@@ -376,24 +383,23 @@ class R2Manager:
                 aws_secret_access_key = self.api_token
 
             self.client = boto3.client(
-                's3',
+                "s3",
                 endpoint_url=self.endpoint_url,
                 aws_access_key_id=aws_access_key_id,
                 aws_secret_access_key=aws_secret_access_key,
-                region_name='auto',
+                region_name="auto",
                 config=Config(
-                    retries={'max_attempts': 3, 'mode': 'adaptive'},
+                    retries={"max_attempts": 3, "mode": "adaptive"},
                     connect_timeout=10,
-                    read_timeout=30
-                )
+                    read_timeout=30,
+                ),
             )
 
             # Test connection by listing objects (with limit)
             client = self.client
             assert client is not None
             await asyncio.get_event_loop().run_in_executor(
-                None,
-                lambda: client.list_objects_v2(Bucket=self.bucket_name, MaxKeys=1)
+                None, lambda: client.list_objects_v2(Bucket=self.bucket_name, MaxKeys=1)
             )
 
             response_time = (datetime.now() - start_time).total_seconds() * 1000
@@ -401,7 +407,7 @@ class R2Manager:
                 service="r2",
                 is_healthy=True,
                 last_check=datetime.now(),
-                response_time_ms=response_time
+                response_time_ms=response_time,
             )
 
             logger.info(f"R2 connected successfully ({response_time:.1f}ms)")
@@ -413,12 +419,13 @@ class R2Manager:
                 is_healthy=False,
                 last_check=datetime.now(),
                 response_time_ms=0.0,
-                error_message=str(e)
+                error_message=str(e),
             )
             raise
 
-    async def upload_object(self, key: str, data: bytes,
-                          content_type: str = 'application/octet-stream') -> bool:
+    async def upload_object(
+        self, key: str, data: bytes, content_type: str = "application/octet-stream"
+    ) -> bool:
         """Upload object to R2."""
         if not self.client:
             raise RuntimeError("R2 client not initialized")
@@ -432,8 +439,8 @@ class R2Manager:
                     Bucket=self.bucket_name,
                     Key=key,
                     Body=data,
-                    ContentType=content_type
-                )
+                    ContentType=content_type,
+                ),
             )
             logger.debug(f"Uploaded object to R2: {key}")
             return True
@@ -450,13 +457,12 @@ class R2Manager:
             client = self.client
             assert client is not None
             response = await asyncio.get_event_loop().run_in_executor(
-                None,
-                lambda: client.get_object(Bucket=self.bucket_name, Key=key)
+                None, lambda: client.get_object(Bucket=self.bucket_name, Key=key)
             )
-            body = response.get('Body')
+            body = response.get("Body")
             return body.read() if body is not None else None
         except ClientError as e:
-            if e.response['Error']['Code'] == 'NoSuchKey':
+            if e.response["Error"]["Code"] == "NoSuchKey":
                 logger.debug(f"Object not found in R2: {key}")
                 return None
             logger.error(f"Failed to download object {key}: {e}")
@@ -473,12 +479,10 @@ class R2Manager:
             response = await asyncio.get_event_loop().run_in_executor(
                 None,
                 lambda: client.list_objects_v2(
-                    Bucket=self.bucket_name,
-                    Prefix=prefix,
-                    MaxKeys=max_keys
-                )
+                    Bucket=self.bucket_name, Prefix=prefix, MaxKeys=max_keys
+                ),
             )
-            return [obj['Key'] for obj in response.get('Contents', [])]
+            return [obj["Key"] for obj in response.get("Contents", [])]
         except ClientError as e:
             logger.error(f"Failed to list objects: {e}")
             return []
@@ -492,8 +496,7 @@ class R2Manager:
             client = self.client
             assert client is not None
             await asyncio.get_event_loop().run_in_executor(
-                None,
-                lambda: client.delete_object(Bucket=self.bucket_name, Key=key)
+                None, lambda: client.delete_object(Bucket=self.bucket_name, Key=key)
             )
             logger.debug(f"Deleted object from R2: {key}")
             return True
@@ -513,7 +516,7 @@ class R2Manager:
                 service="r2",
                 is_healthy=True,
                 last_check=datetime.now(),
-                response_time_ms=response_time
+                response_time_ms=response_time,
             )
         except Exception as e:
             self._health_status = ConnectionHealth(
@@ -521,10 +524,11 @@ class R2Manager:
                 is_healthy=False,
                 last_check=datetime.now(),
                 response_time_ms=0.0,
-                error_message=str(e)
+                error_message=str(e),
             )
 
         return self._health_status
+
 
 class ConnectionManager:
     """
@@ -541,13 +545,10 @@ class ConnectionManager:
 
         # Initialize managers using new config methods
         self.postgres = PostgreSQLManager(
-            database_url=config.get_postgresql_url(),
-            pool_size=10
+            database_url=config.get_postgresql_url(), pool_size=10
         )
 
-        self.redis = RedisManager(
-            redis_url=config.get_redis_url()
-        )
+        self.redis = RedisManager(redis_url=config.get_redis_url())
 
         r2_config = config.get_r2_config()
         self.r2 = R2Manager(
@@ -556,7 +557,7 @@ class ConnectionManager:
             bucket_name=r2_config["bucket_name"],
             endpoint_url=r2_config["endpoint"],
             access_key=r2_config["access_key"],
-            secret_key=r2_config["secret_key"]
+            secret_key=r2_config["secret_key"],
         )
 
         self._connected = False
@@ -568,9 +569,7 @@ class ConnectionManager:
         try:
             # Connect in parallel for faster startup
             await asyncio.gather(
-                self.postgres.connect(),
-                self.redis.connect(),
-                self.r2.connect()
+                self.postgres.connect(), self.redis.connect(), self.r2.connect()
             )
 
             self._connected = True
@@ -590,7 +589,7 @@ class ConnectionManager:
             self.postgres.disconnect(),
             self.redis.disconnect(),
             # R2 doesn't need explicit disconnect
-            return_exceptions=True
+            return_exceptions=True,
         )
 
         self._connected = False
@@ -600,9 +599,15 @@ class ConnectionManager:
         """Check health of all connections."""
         if not self._connected:
             return {
-                "postgresql": ConnectionHealth("postgresql", False, datetime.now(), 0.0, "Not connected"),
-                "redis": ConnectionHealth("redis", False, datetime.now(), 0.0, "Not connected"),
-                "r2": ConnectionHealth("r2", False, datetime.now(), 0.0, "Not connected")
+                "postgresql": ConnectionHealth(
+                    "postgresql", False, datetime.now(), 0.0, "Not connected"
+                ),
+                "redis": ConnectionHealth(
+                    "redis", False, datetime.now(), 0.0, "Not connected"
+                ),
+                "r2": ConnectionHealth(
+                    "r2", False, datetime.now(), 0.0, "Not connected"
+                ),
             }
 
         # Run health checks in parallel
@@ -610,16 +615,29 @@ class ConnectionManager:
             self.postgres.health_check(),
             self.redis.health_check(),
             self.r2.health_check(),
-            return_exceptions=True
+            return_exceptions=True,
         )
 
         return {
-            "postgresql": postgres_health if isinstance(postgres_health, ConnectionHealth) else
-                         ConnectionHealth("postgresql", False, datetime.now(), 0.0, str(postgres_health)),
-            "redis": redis_health if isinstance(redis_health, ConnectionHealth) else
-                    ConnectionHealth("redis", False, datetime.now(), 0.0, str(redis_health)),
-            "r2": r2_health if isinstance(r2_health, ConnectionHealth) else
-                 ConnectionHealth("r2", False, datetime.now(), 0.0, str(r2_health))
+            "postgresql": (
+                postgres_health
+                if isinstance(postgres_health, ConnectionHealth)
+                else ConnectionHealth(
+                    "postgresql", False, datetime.now(), 0.0, str(postgres_health)
+                )
+            ),
+            "redis": (
+                redis_health
+                if isinstance(redis_health, ConnectionHealth)
+                else ConnectionHealth(
+                    "redis", False, datetime.now(), 0.0, str(redis_health)
+                )
+            ),
+            "r2": (
+                r2_health
+                if isinstance(r2_health, ConnectionHealth)
+                else ConnectionHealth("r2", False, datetime.now(), 0.0, str(r2_health))
+            ),
         }
 
     @property
@@ -627,8 +645,10 @@ class ConnectionManager:
         """Check if all services are connected."""
         return self._connected
 
+
 # Global connection manager instance
 _connection_manager: Optional[ConnectionManager] = None
+
 
 async def get_connection_manager() -> ConnectionManager:
     """Get or create global connection manager."""
@@ -640,6 +660,7 @@ async def get_connection_manager() -> ConnectionManager:
 
     return _connection_manager
 
+
 async def close_connections() -> None:
     """Close all connections (for cleanup)."""
     global _connection_manager
@@ -647,6 +668,7 @@ async def close_connections() -> None:
     if _connection_manager:
         await _connection_manager.disconnect_all()
         _connection_manager = None
+
 
 async def reset_connection_manager() -> None:
     """Reset the global connection manager (for testing/cleanup)."""
