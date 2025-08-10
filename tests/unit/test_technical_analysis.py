@@ -8,7 +8,10 @@ import polars as pl
 
 from src.strategies.technical_analysis import (
     calculate_atr,
+    calculate_bollinger_bands,
     calculate_ema,
+    calculate_macd,
+    calculate_rsi,
     calculate_sma,
 )
 
@@ -55,6 +58,36 @@ class TestTechnicalAnalysis(unittest.TestCase):
         self.assertIsNone(calculate_sma(small_data, length=5))
         self.assertIsNone(calculate_ema(small_data, length=5))
         self.assertIsNone(calculate_atr(small_data, length=5))
+
+    def test_calculate_rsi(self) -> None:
+        rsi = calculate_rsi(self.data, length=5)
+        self.assertIsNotNone(rsi)
+        assert rsi is not None
+        self.assertIsInstance(rsi, pl.Series)
+        self.assertTrue((rsi >= 0).all() and (rsi <= 100).all())
+
+    def test_calculate_macd(self) -> None:
+        result = calculate_macd(self.data)
+        self.assertIsNotNone(result)
+        assert result is not None
+        macd, signal, hist = result
+        self.assertIsInstance(macd, pl.Series)
+        self.assertIsInstance(signal, pl.Series)
+        self.assertIsInstance(hist, pl.Series)
+        # histogram is macd - signal; check last value consistency
+        self.assertAlmostEqual(float(hist[-1]), float(macd[-1] - signal[-1]), places=6)
+
+    def test_bollinger_bands(self) -> None:
+        result = calculate_bollinger_bands(self.data, length=5, k=2.0)
+        self.assertIsNotNone(result)
+        assert result is not None
+        upper, mid, lower = result
+        self.assertIsInstance(upper, pl.Series)
+        self.assertIsInstance(mid, pl.Series)
+        self.assertIsInstance(lower, pl.Series)
+        # Upper >= middle >= lower for last fully-defined point
+        self.assertGreaterEqual(float(upper[-1]), float(mid[-1]))
+        self.assertGreaterEqual(float(mid[-1]), float(lower[-1]))
 
 
 if __name__ == "__main__":
