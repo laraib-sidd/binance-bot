@@ -11,10 +11,10 @@ This script orchestrates the entire lifecycle of the trading bot, including:
 import asyncio
 import logging
 
-from src.core.config import load_configuration
-from src.data.connection_managers import close_connections
-from src.data.market_data_pipeline import MarketDataPipeline
-from src.utils.logging import setup_logging
+from .core.config import load_configuration
+from .data.connection_managers import close_connections
+from .data.market_data_pipeline import MarketDataPipeline
+from .utils.logging import setup_logging
 
 
 async def main() -> None:
