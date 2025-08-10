@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Disabled broken backtest CLI entry until implemented.
 - Added `.pre-commit-config.yaml` with black/ruff/mypy/pytest hooks; added GitHub Actions CI (`.github/workflows/ci.yaml`) to run lint, type checks, and tests.
 - CI fix: ensure `ruff`, `black`, `mypy`, and `pytest` run inside uv-managed environment using `astral-sh/setup-uv@v3` and `uv run` to avoid "command not found" errors.
+- Typing: added `src/py.typed` and packaging include to satisfy PEP 561 so `mypy` analyzes our package and avoids `import-untyped` errors for internal modules.
 - Documentation: to follow with API docs and user guides in Phase 1.6 docs task.
 
 ### 🔄 DATABASE ARCHITECTURE IMPROVEMENT - 2024-12-23

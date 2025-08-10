@@ -4,6 +4,7 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src"]
+force-include = {"src/py.typed" = "src/py.typed"}
 
 [project]
 name = "helios-trading-bot"
