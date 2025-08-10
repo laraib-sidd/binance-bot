@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI fix: ensure `ruff`, `black`, `mypy`, and `pytest` run inside uv-managed environment using `astral-sh/setup-uv@v3` and `uv run` to avoid "command not found" errors.
 - Typing: added `src/py.typed` and packaging include to satisfy PEP 561 so `mypy` analyzes our package and avoids `import-untyped` errors for internal modules.
 - Imports: switched `src/main.py` to use package-relative imports to ensure consistent resolution under both local runs and CI (`from .data...` etc.).
+- Tooling: configured mypy to resolve the project package via `mypy_path = ["src"]` and set CI step env (`PYTHONPATH=src`) so CI matches local behavior.
 - Documentation: to follow with API docs and user guides in Phase 1.6 docs task.
 
 ### 🔄 DATABASE ARCHITECTURE IMPROVEMENT - 2024-12-23
