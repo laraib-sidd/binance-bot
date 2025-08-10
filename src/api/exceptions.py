@@ -118,7 +118,9 @@ class AuthenticationError(BinanceAPIError):
     This is typically not retryable without fixing credentials.
     """
 
-    def __init__(self, message: str = "API authentication failed", **kwargs):
+    def __init__(
+        self, message: str = "API authentication failed", **kwargs: Any
+    ) -> None:
         super().__init__(message, **kwargs)
 
     def is_retryable(self) -> bool:
@@ -135,8 +137,11 @@ class RateLimitError(BinanceAPIError):
     """
 
     def __init__(
-        self, message: str = "API rate limit exceeded", retry_after: int = 60, **kwargs
-    ):
+        self,
+        message: str = "API rate limit exceeded",
+        retry_after: int = 60,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(message, retry_after=retry_after, **kwargs)
 
     def is_retryable(self) -> bool:
@@ -156,7 +161,9 @@ class NetworkError(BinanceAPIError):
     Usually retryable with exponential backoff.
     """
 
-    def __init__(self, message: str = "Network communication error", **kwargs):
+    def __init__(
+        self, message: str = "Network communication error", **kwargs: Any
+    ) -> None:
         super().__init__(message, **kwargs)
 
     def is_retryable(self) -> bool:
@@ -176,7 +183,9 @@ class InvalidResponseError(BinanceAPIError):
     contains invalid data that can't be processed.
     """
 
-    def __init__(self, message: str = "Invalid API response format", **kwargs):
+    def __init__(
+        self, message: str = "Invalid API response format", **kwargs: Any
+    ) -> None:
         super().__init__(message, **kwargs)
 
     def is_retryable(self) -> bool:
@@ -196,7 +205,9 @@ class InsufficientPermissionsError(BinanceAPIError):
     for the requested operation (e.g., trading permissions required).
     """
 
-    def __init__(self, message: str = "Insufficient API permissions", **kwargs):
+    def __init__(
+        self, message: str = "Insufficient API permissions", **kwargs: Any
+    ) -> None:
         super().__init__(message, **kwargs)
 
     def is_retryable(self) -> bool:
@@ -212,7 +223,7 @@ class ServerError(BinanceAPIError):
     Usually retryable as these are temporary server issues.
     """
 
-    def __init__(self, message: str = "Binance server error", **kwargs):
+    def __init__(self, message: str = "Binance server error", **kwargs: Any) -> None:
         super().__init__(message, **kwargs)
 
     def is_retryable(self) -> bool:
@@ -232,7 +243,9 @@ class DataValidationError(BinanceAPIError):
     (e.g., negative prices, future timestamps, etc.).
     """
 
-    def __init__(self, message: str = "Market data validation failed", **kwargs):
+    def __init__(
+        self, message: str = "Market data validation failed", **kwargs: Any
+    ) -> None:
         super().__init__(message, **kwargs)
 
     def is_retryable(self) -> bool:

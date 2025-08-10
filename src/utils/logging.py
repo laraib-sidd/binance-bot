@@ -133,7 +133,7 @@ class TradingLoggerAdapter(logging.LoggerAdapter):
         self.session_id = extra.get("session_id")
         self.strategy = extra.get("strategy")
 
-    def process(self, msg: str, kwargs: Dict[str, Any]) -> tuple:
+    def process(self, msg: str, kwargs: Any) -> Any:
         """Process log message and add trading context."""
         # Add session context to extra
         if "extra" not in kwargs:
@@ -151,8 +151,8 @@ class TradingLoggerAdapter(logging.LoggerAdapter):
         quantity: Optional[Union[Decimal, float, str]] = None,
         side: Optional[str] = None,
         order_id: Optional[str] = None,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         """Log trading-specific action."""
         extra = {
             "trading_pair": trading_pair,
@@ -170,8 +170,8 @@ class TradingLoggerAdapter(logging.LoggerAdapter):
         trading_pair: str,
         price: Union[Decimal, float, str],
         volume: Optional[Union[Decimal, float, str]] = None,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         """Log market data update."""
         extra = {
             "trading_pair": trading_pair,
@@ -188,8 +188,8 @@ class TradingLoggerAdapter(logging.LoggerAdapter):
         trading_pair: str,
         strength: Optional[float] = None,
         indicators: Optional[Dict[str, Any]] = None,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         """Log trading signal."""
         extra = {
             "trading_pair": trading_pair,
@@ -206,8 +206,8 @@ class TradingLoggerAdapter(logging.LoggerAdapter):
         metric: str,
         value: Union[str, float, int],
         trading_pair: Optional[str] = None,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         """Log performance metric."""
         extra = {
             "metric": metric,
@@ -235,7 +235,7 @@ class LoggingManager:
         # Initialize logging
         self._setup_logging()
 
-    def _setup_logging(self):
+    def _setup_logging(self) -> None:
         """Setup comprehensive logging configuration."""
         # Determine log level
         if self.config:
@@ -262,7 +262,7 @@ class LoggingManager:
         # Setup specific loggers
         self._setup_component_loggers()
 
-    def _setup_console_handler(self, log_level: int):
+    def _setup_console_handler(self, log_level: int) -> None:
         """Setup console output handler."""
         console_handler = logging.StreamHandler(sys.stdout)
         console_handler.setLevel(log_level)
@@ -274,7 +274,7 @@ class LoggingManager:
         logging.getLogger().addHandler(console_handler)
         self.handlers["console"] = console_handler
 
-    def _setup_file_handlers(self, log_level: int):
+    def _setup_file_handlers(self, log_level: int) -> None:
         """Setup file-based log handlers with rotation."""
         # Main application log with rotation
         main_log_file = self.log_directory / "helios_trading_bot.log"
@@ -301,7 +301,7 @@ class LoggingManager:
         logging.getLogger().addHandler(session_handler)
         self.handlers["session_file"] = session_handler
 
-    def _setup_error_handler(self):
+    def _setup_error_handler(self) -> None:
         """Setup dedicated error log handler."""
         error_log_file = self.log_directory / "errors.log"
         error_handler = logging.handlers.RotatingFileHandler(
@@ -316,7 +316,7 @@ class LoggingManager:
         logging.getLogger().addHandler(error_handler)
         self.handlers["error_file"] = error_handler
 
-    def _setup_trading_handler(self):
+    def _setup_trading_handler(self) -> None:
         """Setup dedicated trading operations log handler."""
         trading_log_file = (
             self.log_directory / f"trading_{datetime.now().strftime('%Y%m%d')}.log"
@@ -342,7 +342,7 @@ class LoggingManager:
         logging.getLogger().addHandler(trading_handler)
         self.handlers["trading_file"] = trading_handler
 
-    def _setup_component_loggers(self):
+    def _setup_component_loggers(self) -> None:
         """Setup loggers for specific components."""
         components = [
             "helios.core",
@@ -388,7 +388,7 @@ class LoggingManager:
 
         return TradingLoggerAdapter(logger, extra)
 
-    def log_system_info(self):
+    def log_system_info(self) -> None:
         """Log system information at startup."""
         logger = self.get_logger("helios.system")
 
@@ -404,7 +404,7 @@ class LoggingManager:
 
         logger.info("Logging system initialized")
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         """Cleanup logging resources."""
         logger = self.get_logger("helios.system")
         logger.info(f"Helios Trading Bot - Session {self.session_id} ending")
@@ -462,11 +462,11 @@ def get_logger(name: str, strategy: Optional[str] = None) -> TradingLoggerAdapte
     """
     if _logging_manager is None:
         setup_logging()
-
+    assert _logging_manager is not None
     return _logging_manager.get_logger(name, strategy)
 
 
-def cleanup_logging():
+def cleanup_logging() -> None:
     """Cleanup logging resources."""
     global _logging_manager
 

@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - Current Development
 
+### 🚀 Phase 1.6 - Regime Gating, Schema Fixes, CI (2025-01-10)
+- Added regime-aware gating in `SignalGenerator` using a lightweight ADX proxy (`adx_threshold` configurable). Grid/entries disabled during strong trend regimes.
+- Fixed logging initialization in `src/main.py` to pass full `TradingConfig` to logging setup.
+- Enforced configurable database schema usage throughout `market_data_pipeline.py` (no more hardcoded `helios_trading`).
+- Repaired database verification and stats queries in `src/data/database_schema.py` (correct f-string in table_type filter; simplified stats query to avoid placeholder mismatch).
+- Aligned versions: bumped `pyproject.toml` to `1.5.0`; updated mypy target to Python 3.11; removed Python 3.9 classifier.
+- Disabled broken backtest CLI entry until implemented.
+- Added `.pre-commit-config.yaml` with black/ruff/mypy/pytest hooks; added GitHub Actions CI (`.github/workflows/ci.yaml`) to run lint, type checks, and tests.
+- Documentation: to follow with API docs and user guides in Phase 1.6 docs task.
+
 ### 🔄 DATABASE ARCHITECTURE IMPROVEMENT - 2024-12-23
 - **Status**: ✅ **COMPLETE - Dedicated Schema & Enhanced Testing**
 - **Breaking Change**: Database now uses dedicated 'helios_trading' schema instead of 'public'

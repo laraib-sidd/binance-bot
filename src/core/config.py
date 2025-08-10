@@ -122,7 +122,7 @@ class TradingConfig:
     _config_loaded_at: datetime = field(default_factory=datetime.now)
     _validation_errors: list = field(default_factory=list)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate configuration after initialization."""
         self._validate_configuration()
         if self._validation_errors:
@@ -139,7 +139,7 @@ class TradingConfig:
         self._validate_r2_config()
         self._validate_api_keys()
 
-    def _validate_trading_settings(self):
+    def _validate_trading_settings(self) -> None:
         """Validate trading-related settings."""
         if not isinstance(self.trading_symbols, list) or not all(
             isinstance(s, str) for s in self.trading_symbols
@@ -150,7 +150,7 @@ class TradingConfig:
                 "POLLING_INTERVAL_SECONDS must be a positive number."
             )
 
-    def _validate_database_config(self):
+    def _validate_database_config(self) -> None:
         """Validate database connection settings."""
         db_vars = [
             self.neon_username,
@@ -164,7 +164,7 @@ class TradingConfig:
         if self.neon_port and not 1 <= self.neon_port <= 65535:
             self._validation_errors.append("Invalid NEON_PORT.")
 
-    def _validate_redis_config(self):
+    def _validate_redis_config(self) -> None:
         """Validate Redis connection settings."""
         if not self.upstash_redis_host or not self.upstash_redis_port:
             self._validation_errors.append(
@@ -173,7 +173,7 @@ class TradingConfig:
         if self.upstash_redis_port and not 1 <= self.upstash_redis_port <= 65535:
             self._validation_errors.append("Invalid UPSTASH_REDIS_PORT.")
 
-    def _validate_r2_config(self):
+    def _validate_r2_config(self) -> None:
         """Validate R2/S3 storage settings."""
         r2_vars = [
             self.r2_account_id,
@@ -186,7 +186,7 @@ class TradingConfig:
                 "All R2 configuration variables are required."
             )
 
-    def _validate_api_keys(self):
+    def _validate_api_keys(self) -> None:
         """Validate Binance API key and secret format."""
         if not self.binance_api_key or len(self.binance_api_key) < 10:
             self._validation_errors.append("BINANCE_API_KEY is missing or too short.")
@@ -284,7 +284,7 @@ class ConfigurationManager:
     .env files, and provides secure credential management.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.config: Optional[TradingConfig] = None
         self._env_file_path: Optional[str] = None
 

@@ -1,74 +1,81 @@
-"""
-Integration Tests for the SignalGenerator
-"""
+from pathlib import Path
+import sys
 
-import pandas as pd
 import polars as pl
 import pytest
 
-from src.data.market_data_pipeline import MarketDataPipeline
-from src.strategies.signal_generator import MovingAverageCrossoverSignal
+# Add project root to Python path
+project_root = Path(__file__).resolve().parent.parent.parent
+sys.path.insert(0, str(project_root))
+
+from src.strategies.signal_generator import Signal, SignalGenerator  # noqa: E402
 
 
 @pytest.fixture
-def mock_market_data():
+def mock_ohlcv_data() -> pl.DataFrame:
     """
-    Provides a mock Polars DataFrame for market data.
-    This simulates the data that would be returned from the database.
+    Provides a DataFrame simulating a bullish crossover.
+    - The fast EMA crosses above the slow EMA at the last time step.
     """
-    data = {
-        "timestamp": pd.to_datetime(
-            [
-                "2023-01-01 10:00:00",
-                "2023-01-01 10:01:00",
-                "2023-01-01 10:02:00",
-                "2023-01-01 10:03:00",
-                "2023-01-01 10:04:00",
-                "2023-01-01 10:05:00",
-                "2023-01-01 10:06:00",
-                "2023-01-01 10:07:00",
-                "2023-01-01 10:08:00",
-                "2023-01-01 10:09:00",
-                "2023-01-01 10:10:00",
-            ]
-        ),
-        "close_price": [100, 101, 102, 103, 104, 105, 106, 102, 100, 103, 105],
-        "high_price": [101, 102, 103, 104, 105, 106, 107, 104, 102, 104, 106],
-        "low_price": [99, 100, 101, 102, 103, 104, 105, 101, 99, 102, 104],
-    }
-    return pl.DataFrame(data)
-
-
-@pytest.mark.asyncio
-async def test_signal_generation_with_mocked_data(mocker, mock_market_data):
-    """
-    Tests the signal generator with mocked data, avoiding network and DB calls.
-    """
-    # 1. Mock the method that hits the database
-    mocker.patch.object(
-        MarketDataPipeline,
-        "get_recent_ohlcv",
-        return_value=mock_market_data.to_dicts(),  # get_recent_ohlcv returns a list of dicts
+    return pl.DataFrame(
+        {
+            "timestamp": [
+                1672531200000,
+                1672534800000,
+                1672538400000,
+                1672542000000,
+                1672545600000,
+            ],
+            "open": [95, 98, 100, 105, 110],
+            "high": [96, 99, 104, 108, 115],
+            "low": [94, 97, 99, 103, 108],
+            "close": [95, 99, 102, 106, 114],
+            "volume": [1000, 1200, 1100, 1300, 1500],
+        }
     )
 
-    # 2. Initialize the pipeline and signal generator
-    # We don't need to call await pipeline.initialize() because we are not using real connections
-    pipeline = MarketDataPipeline()
-    signal_generator = MovingAverageCrossoverSignal(pipeline)
 
-    # 3. Generate the signal
-    signal = await signal_generator.generate_signal("BTCUSDT")
-
-    # 4. Assert the outcome based on the mock data
-    # In our mock data, the short-term average (last 5) crosses above the long-term (last 10)
-    # Short avg: (106+102+100+103+105)/5 = 103.2
-    # Long avg: (101+102+103+104+105+106+102+100+103+105)/10 = 103.1
-    # Since short > long, we expect a BUY signal.
-    assert signal["signal"] == "BUY"
-    assert "short_sma" in signal["context"]
-    assert "long_sma" in signal["context"]
-    assert signal["context"]["short_sma"] > signal["context"]["long_sma"]
+def test_moving_average_crossover_buy_signal(mock_ohlcv_data: pl.DataFrame) -> None:
+    """
+    Test that a BUY signal is generated on a fast MA crossover.
+    """
+    signal_generator = SignalGenerator(fast_ma_period=3, slow_ma_period=5)
+    signal = signal_generator.generate_signal(mock_ohlcv_data)
+    assert signal == Signal.BUY
 
 
-if __name__ == "__main__":
-    pytest.main()
+def test_moving_average_crossover_neutral_signal(mock_ohlcv_data: pl.DataFrame) -> None:
+    """
+    Test that a NEUTRAL signal is generated when there is no crossover.
+    """
+    # Reverse the data to simulate a non-crossover (bearish) scenario
+    reversed_data = mock_ohlcv_data.reverse()
+    signal_generator = SignalGenerator(fast_ma_period=3, slow_ma_period=5)
+    signal = signal_generator.generate_signal(reversed_data)
+    assert signal == Signal.NEUTRAL
+
+
+def test_insufficient_data_for_signal(mock_ohlcv_data: pl.DataFrame) -> None:
+    """
+    Test that a NEUTRAL signal is generated when data is insufficient.
+    """
+    # Use fewer data points than the slow_ma_period
+    insufficient_data = mock_ohlcv_data.slice(0, 4)
+    signal_generator = SignalGenerator(fast_ma_period=3, slow_ma_period=5)
+    signal = signal_generator.generate_signal(insufficient_data)
+    assert signal == Signal.NEUTRAL
+
+
+def test_signal_generator_init_validation() -> None:
+    """
+    Test that the SignalGenerator raises an error with invalid MA periods.
+    """
+    with pytest.raises(
+        ValueError, match="Fast MA period must be less than Slow MA period."
+    ):
+        SignalGenerator(fast_ma_period=10, slow_ma_period=5)
+
+    with pytest.raises(
+        ValueError, match="Fast MA period must be less than Slow MA period."
+    ):
+        SignalGenerator(fast_ma_period=10, slow_ma_period=10)

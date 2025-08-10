@@ -7,7 +7,7 @@ packages = ["src"]
 
 [project]
 name = "helios-trading-bot"
-version = "1.4.0"
+version = "1.5.0"
 description = "A sophisticated cryptocurrency trading bot for Binance"
 authors = [
     {name = "Helios Trading Bot Team", email = "dev@helios-trading.com"},
@@ -21,7 +21,7 @@ classifiers = [
     "Intended Audience :: Financial and Insurance Industry",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
+
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -113,7 +113,7 @@ Repository = "https://github.com/laraib-sidd/binance-bot"
 
 [project.scripts]
 helios = "src.main:main"
-helios-backtest = "src.backtest.main:main"
+# backtest entrypoint disabled until implemented
 helios-setup = "scripts.setup_dev_environment:main"
 helios-test = "scripts.test_environment:main"
 helios-setup-phase13 = "scripts.setup_phase_1_3:main"
@@ -160,7 +160,7 @@ force-sort-within-sections = true
 combine-as-imports = true
 
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.11"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
@@ -181,6 +181,11 @@ module = [
     "ccxt.*",
     "ta.*",
     "loguru.*",
+    "asyncpg",
+    "redis.*",
+    "boto3",
+    "botocore.*",
+    "aiohttp"
 ]
 ignore_missing_imports = true
 

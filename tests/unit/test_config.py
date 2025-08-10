@@ -34,13 +34,13 @@ finally:
 class TestTradingConfig:
     """Test cases for TradingConfig dataclass."""
 
-    def test_default_configuration(self):
+    def test_default_configuration(self) -> None:
         """Test default configuration values."""
         # This should fail validation due to missing API keys
         with pytest.raises(ValueError, match="Configuration validation failed"):
             TradingConfig()
 
-    def test_valid_configuration(self):
+    def test_valid_configuration(self) -> None:
         """Test valid configuration creation."""
         config = TradingConfig(
             binance_api_key="a" * 64,  # Valid length API key
@@ -56,7 +56,7 @@ class TestTradingConfig:
         assert config.max_position_size_usd == Decimal("100.00")
         assert len(config.default_trading_pairs) == 5
 
-    def test_api_key_validation(self):
+    def test_api_key_validation(self) -> None:
         """Test API key validation."""
         # Test missing API key
         with pytest.raises(ValueError, match="BINANCE_API_KEY is required"):
@@ -74,7 +74,7 @@ class TestTradingConfig:
         with pytest.raises(ValueError, match="BINANCE_API_SECRET appears invalid"):
             TradingConfig(binance_api_key="a" * 64, binance_api_secret="short")
 
-    def test_environment_validation(self):
+    def test_environment_validation(self) -> None:
         """Test environment validation."""
         with pytest.raises(ValueError, match="Environment must be one of"):
             TradingConfig(
@@ -83,7 +83,7 @@ class TestTradingConfig:
                 environment="invalid",
             )
 
-    def test_risk_parameter_validation(self):
+    def test_risk_parameter_validation(self) -> None:
         """Test risk parameter validation."""
         # Test negative position size
         with pytest.raises(ValueError, match="max_position_size_usd must be positive"):
@@ -103,7 +103,7 @@ class TestTradingConfig:
                 max_account_drawdown_percent=Decimal("150.00"),
             )
 
-    def test_trading_pairs_validation(self):
+    def test_trading_pairs_validation(self) -> None:
         """Test trading pairs validation."""
         # Test empty trading pairs
         with pytest.raises(
@@ -123,7 +123,7 @@ class TestTradingConfig:
                 default_trading_pairs=["BTC"],
             )
 
-    def test_grid_trading_validation(self):
+    def test_grid_trading_validation(self) -> None:
         """Test grid trading parameter validation."""
         # Test insufficient grid levels
         with pytest.raises(ValueError, match="grid_levels must be at least 2"):
@@ -139,7 +139,7 @@ class TestTradingConfig:
                 grid_spacing_percent=Decimal("-1.0"),
             )
 
-    def test_to_dict(self):
+    def test_to_dict(self) -> None:
         """Test configuration serialization to dictionary."""
         config = TradingConfig(
             binance_api_key="a" * 64, binance_api_secret="b" * 64, environment="testnet"
@@ -157,7 +157,7 @@ class TestTradingConfig:
         assert config_dict["api_keys_configured"] is True
         assert "config_loaded_at" in config_dict
 
-    def test_save_config_summary(self):
+    def test_save_config_summary(self) -> None:
         """Test saving configuration summary to file."""
         config = TradingConfig(binance_api_key="a" * 64, binance_api_secret="b" * 64)
 
@@ -189,14 +189,14 @@ class TestConfigurationManager:
     """Test cases for ConfigurationManager class."""
 
     @pytest.fixture
-    def manager(self):
+    def manager(self) -> ConfigurationManager:
         """Fixture to provide a clean ConfigurationManager instance."""
         # Reset the global manager's state before each test
         config_manager.config = None
         config_manager._env_file_path = None
         return ConfigurationManager()
 
-    def test_load_from_environment(self, manager):
+    def test_load_from_environment(self, manager: ConfigurationManager) -> None:
         """Test loading configuration from environment variables."""
         test_env = {
             "BINANCE_API_KEY": "a" * 64,
@@ -209,7 +209,7 @@ class TestConfigurationManager:
             assert config.binance_testnet is True
             assert config.log_level == "DEBUG"
 
-    def test_load_from_env_file(self, manager):
+    def test_load_from_env_file(self, manager: ConfigurationManager) -> None:
         """Test loading configuration from a .env file."""
         env_content = "LOG_LEVEL=WARNING\n"
         with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".env") as f:
@@ -222,7 +222,7 @@ class TestConfigurationManager:
         finally:
             os.unlink(temp_env_file)
 
-    def test_api_credentials_validation(self, manager):
+    def test_api_credentials_validation(self, manager: ConfigurationManager) -> None:
         """Test API credential validation logic."""
         test_env = {
             "BINANCE_API_KEY": "a" * 64,
@@ -232,7 +232,7 @@ class TestConfigurationManager:
             manager.load_from_environment()
             assert manager.validate_api_credentials() is True
 
-    def test_get_safe_config_summary(self, manager):
+    def test_get_safe_config_summary(self, manager: ConfigurationManager) -> None:
         """Test the safe config summary obfuscates sensitive data."""
         test_env = {
             "BINANCE_API_KEY": "MyApiKey123",
@@ -248,13 +248,13 @@ class TestConfigurationManager:
 class TestConfigurationFunctions:
     """Test cases for module-level configuration functions."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Setup for each test method."""
         # Reset the global config manager state
         config_manager.config = None
         config_manager._env_file_path = None
 
-    def test_load_configuration_from_env_file(self):
+    def test_load_configuration_from_env_file(self) -> None:
         """Test load_configuration function with .env file."""
         env_content = """
 BINANCE_API_KEY=test_api_key_64_characters_long_abcdefghijklmnopqrstuvwxyz
@@ -274,7 +274,7 @@ BINANCE_API_SECRET=test_api_secret_64_characters_long_abcdefghijklmnopqrstuvw
             if Path(temp_env_file).exists():
                 Path(temp_env_file).unlink()
 
-    def test_load_configuration_from_environment(self):
+    def test_load_configuration_from_environment(self) -> None:
         """Test load_configuration function from environment variables."""
         test_env = {"BINANCE_API_KEY": "a" * 64, "BINANCE_API_SECRET": "b" * 64}
 
@@ -282,12 +282,12 @@ BINANCE_API_SECRET=test_api_secret_64_characters_long_abcdefghijklmnopqrstuvw
             config = load_configuration("nonexistent.env")
             assert config.binance_api_key == "a" * 64
 
-    def test_get_config_without_loading(self):
+    def test_get_config_without_loading(self) -> None:
         """Test get_config function without prior loading."""
         with pytest.raises(RuntimeError, match="Configuration not loaded"):
             get_config()
 
-    def test_get_config_after_loading(self):
+    def test_get_config_after_loading(self) -> None:
         """Test get_config function after loading configuration."""
         test_env = {"BINANCE_API_KEY": "a" * 64, "BINANCE_API_SECRET": "b" * 64}
 
@@ -299,7 +299,7 @@ BINANCE_API_SECRET=test_api_secret_64_characters_long_abcdefghijklmnopqrstuvw
             config = get_config()
             assert config.binance_api_key == "a" * 64
 
-    def test_validate_configuration_function(self):
+    def test_validate_configuration_function(self) -> None:
         """Test validate_configuration function."""
         # Test without loaded config
         assert validate_configuration() is False
@@ -315,12 +315,12 @@ BINANCE_API_SECRET=test_api_secret_64_characters_long_abcdefghijklmnopqrstuvw
 class TestConfigurationIntegration:
     """Integration tests for configuration system."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Setup for each test method."""
         config_manager.config = None
         config_manager._env_file_path = None
 
-    def test_full_configuration_workflow(self):
+    def test_full_configuration_workflow(self) -> None:
         """Test complete configuration workflow."""
         # Create temporary .env file
         env_content = """

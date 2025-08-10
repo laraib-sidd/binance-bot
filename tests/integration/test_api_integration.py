@@ -9,6 +9,7 @@ IMPORTANT: These tests require valid testnet API credentials in .env file.
 
 import asyncio
 import logging
+from typing import AsyncGenerator, Generator
 
 import pytest
 
@@ -22,31 +23,43 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+# Scope the event loop to the entire test session for efficiency
+
+
+@pytest.fixture(scope="session")
+def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
+    """Create an instance of the default event loop for the session."""
+    loop = asyncio.get_event_loop_policy().new_event_loop()
+    try:
+        yield loop
+    finally:
+        loop.close()
+
+
+@pytest.fixture(scope="class")
+async def client() -> AsyncGenerator[BinanceClient, None]:
+    """
+    Create and configure a single Binance client instance for the test class.
+    This is more efficient as we don't need to create a new client for every test.
+    """
+    config = load_configuration()
+
+    if not config.binance_testnet:
+        pytest.skip("Integration tests require testnet configuration")
+
+    if not config.binance_api_key or not config.binance_api_secret:
+        pytest.skip("Integration tests require API credentials in .env file")
+
+    async with BinanceClient(config) as c:
+        yield c
+
+
+@pytest.mark.usefixtures("client")
 class TestBinanceAPIIntegration:
     """Integration tests for Binance API client."""
 
-    @pytest.fixture
-    async def client(self):
-        """Create and configure Binance client for testing."""
-        try:
-            config = load_configuration()
-
-            # Ensure we're using testnet
-            if not config.binance_testnet:
-                pytest.skip("Integration tests require testnet configuration")
-
-            # Validate API credentials are configured
-            if not config.binance_api_key or not config.binance_api_secret:
-                pytest.skip("Integration tests require API credentials in .env file")
-
-            async with BinanceClient(config) as client:
-                yield client
-
-        except Exception as e:
-            pytest.skip(f"Failed to create client: {e}")
-
     @pytest.mark.asyncio
-    async def test_server_connectivity(self, client: BinanceClient):
+    async def test_server_connectivity(self, client: BinanceClient) -> None:
         """Test basic server connectivity."""
         logger.info("🧪 Testing server connectivity...")
 
@@ -62,7 +75,7 @@ class TestBinanceAPIIntegration:
         logger.info("✅ Server connectivity test passed")
 
     @pytest.mark.asyncio
-    async def test_client_configuration(self, client: BinanceClient):
+    async def test_client_configuration(self, client: BinanceClient) -> None:
         """Test client configuration and initialization."""
         logger.info("🧪 Testing client configuration...")
 
@@ -76,7 +89,9 @@ class TestBinanceAPIIntegration:
         logger.info("✅ Client configuration test passed")
 
     @pytest.mark.asyncio
-    async def test_authentication_and_account_access(self, client: BinanceClient):
+    async def test_authentication_and_account_access(
+        self, client: BinanceClient
+    ) -> None:
         """Test API authentication and account access."""
         logger.info("🧪 Testing authentication and account access...")
 
@@ -97,7 +112,7 @@ class TestBinanceAPIIntegration:
         logger.info("✅ Authentication and account access test passed")
 
     @pytest.mark.asyncio
-    async def test_market_data_retrieval(self, client: BinanceClient):
+    async def test_market_data_retrieval(self, client: BinanceClient) -> None:
         """Test market data retrieval functionality."""
         logger.info("🧪 Testing market data retrieval...")
 
@@ -135,7 +150,7 @@ class TestBinanceAPIIntegration:
         logger.info("✅ Market data retrieval test passed")
 
     @pytest.mark.asyncio
-    async def test_price_data_consistency(self, client: BinanceClient):
+    async def test_price_data_consistency(self, client: BinanceClient) -> None:
         """Test price data consistency and validation."""
         logger.info("🧪 Testing price data consistency...")
 
@@ -167,7 +182,7 @@ class TestBinanceAPIIntegration:
         logger.info("✅ Price data consistency test passed")
 
     @pytest.mark.asyncio
-    async def test_error_handling(self, client: BinanceClient):
+    async def test_error_handling(self, client: BinanceClient) -> None:
         """Test error handling for various scenarios."""
         logger.info("🧪 Testing error handling...")
 
@@ -182,7 +197,7 @@ class TestBinanceAPIIntegration:
         logger.info("✅ Error handling test passed")
 
     @pytest.mark.asyncio
-    async def test_comprehensive_connectivity(self, client: BinanceClient):
+    async def test_comprehensive_connectivity(self, client: BinanceClient) -> None:
         """Test comprehensive connectivity using built-in test method."""
         logger.info("🧪 Testing comprehensive connectivity...")
 
@@ -194,70 +209,3 @@ class TestBinanceAPIIntegration:
         ), "Comprehensive connectivity test should pass"
 
         logger.info("✅ Comprehensive connectivity test passed")
-
-
-# Standalone test functions for manual execution
-
-
-async def manual_test_api_connection():
-    """Manual test function for API connection."""
-    print("🚀 Starting manual API connection test...")
-
-    try:
-        # Load configuration
-        config = load_configuration()
-        print(f"📋 Configuration loaded: Environment={config.environment}")
-        print(f"🔧 Testnet mode: {config.binance_testnet}")
-
-        # Create client and test
-        async with BinanceClient(config) as client:
-            print(f"🌐 Connected to: {client.get_base_url()}")
-
-            # Test connectivity
-            print("\n🧪 Testing connectivity...")
-            success = await client.test_connectivity()
-
-            if success:
-                print("✅ API connectivity test PASSED!")
-
-                # Get some basic market data
-                print("\n📊 Fetching market data...")
-                try:
-                    ticker = await client.get_ticker_price("BTCUSDT")
-                    print(f"💰 BTC Price: ${ticker.price}")
-                    print(f"📈 24h Change: {ticker.price_change_percent_24h:+.2f}%")
-                except Exception as e:
-                    print(f"⚠️ Market data test failed: {e}")
-
-                # Get account info
-                print("\n👤 Fetching account info...")
-                try:
-                    account = await client.get_account_info()
-                    print(f"🏦 Account Type: {account.account_type}")
-                    print(f"🔐 Trading Enabled: {account.can_trade}")
-
-                    if account.balances:
-                        print(f"💳 Assets with balance: {len(account.balances)}")
-                        for asset, balance in list(account.balances.items())[
-                            :5
-                        ]:  # Show first 5
-                            print(f"  {asset}: {balance}")
-                    else:
-                        print(
-                            "💳 No assets with balance (expected for new testnet account)"
-                        )
-
-                except Exception as e:
-                    print(f"⚠️ Account info test failed: {e}")
-
-            else:
-                print("❌ API connectivity test FAILED!")
-
-    except Exception as e:
-        print(f"❌ Manual test failed: {e}")
-        print("💡 Check your .env file configuration")
-
-
-if __name__ == "__main__":
-    """Run manual test if script is executed directly."""
-    asyncio.run(manual_test_api_connection())

@@ -11,6 +11,42 @@ from typing import Optional
 import polars as pl
 
 
+def calculate_adx(data: pl.DataFrame, length: int = 14) -> Optional[pl.Series]:
+    """
+    Calculates a simplified ADX proxy using Polars.
+
+    This is a lightweight regime proxy. For production-grade ADX, use a TA lib.
+    """
+    if len(data) < length + 1:
+        return None
+
+    high = data["high"]
+    low = data["low"]
+    close = data["close"]
+
+    up_move = (high - high.shift(1)).map_elements(lambda v: max(v, 0))
+    down_move = (low.shift(1) - low).map_elements(lambda v: max(v, 0))
+
+    plus_dm = (up_move > down_move).cast(pl.Int8) * up_move
+    minus_dm = (down_move > up_move).cast(pl.Int8) * down_move
+
+    tr1 = high - low
+    tr2 = (high - close.shift(1)).abs()
+    tr3 = (low - close.shift(1)).abs()
+    # Compute max per row as a series (avoid Expr to satisfy typing)
+    tr = data.select(pl.max_horizontal([tr1, tr2, tr3]).alias("tr")).to_series()
+
+    atr = tr.rolling_mean(window_size=length)
+    atr_safe = atr.map_elements(lambda v: v if v and v > 1e-9 else 1e-9)
+    plus_di = (plus_dm.rolling_mean(window_size=length) / atr_safe) * 100
+    minus_di = (minus_dm.rolling_mean(window_size=length) / atr_safe) * 100
+
+    denom = (plus_di + minus_di).map_elements(lambda v: v if v > 1e-9 else 1e-9)
+    dx = ((plus_di - minus_di).abs() / denom) * 100
+    adx = dx.rolling_mean(window_size=length)
+    return adx
+
+
 def calculate_sma(data: pl.DataFrame, length: int = 20) -> Optional[pl.Series]:
     """
     Calculates the Simple Moving Average (SMA) using Polars.
