@@ -45,7 +45,6 @@ class TestTechnicalAnalysis(unittest.TestCase):
         """Test Average True Range calculation."""
         atr_5 = calculate_atr(self.data, length=5)
         self.assertIsNotNone(atr_5)
-        assert atr_5 is not None
         self.assertIsInstance(atr_5, pl.Series)
         # Polars ATR calculation can differ slightly
         self.assertAlmostEqual(atr_5[-1], 5.6, places=1)
