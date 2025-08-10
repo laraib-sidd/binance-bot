@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Aligned versions: bumped `pyproject.toml` to `1.5.0`; updated mypy target to Python 3.11; removed Python 3.9 classifier.
 - Disabled broken backtest CLI entry until implemented.
 - Added `.pre-commit-config.yaml` with black/ruff/mypy/pytest hooks; added GitHub Actions CI (`.github/workflows/ci.yaml`) to run lint, type checks, and tests.
+- CI fix: ensure `ruff`, `black`, `mypy`, and `pytest` run inside uv-managed environment using `astral-sh/setup-uv@v3` and `uv run` to avoid "command not found" errors.
 - Documentation: to follow with API docs and user guides in Phase 1.6 docs task.
 
 ### 🔄 DATABASE ARCHITECTURE IMPROVEMENT - 2024-12-23

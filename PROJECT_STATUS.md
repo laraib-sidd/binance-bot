@@ -19,6 +19,7 @@
 - **Phase 1.4**: Implemented the Signal Generation Engine using Polars.
 - **Phase 1.3**: Finalized and stabilized the Market Data Pipeline.
 - **Phase 1.2**: Established robust database and Redis connections.
+- **CI**: Fixed GitHub Actions to execute tooling via `uv run` with `astral-sh/setup-uv@v3`.
 
 ## Known Issues
 - ✅ **RESOLVED**: Integration tests now use mocked BinanceClient for speed
