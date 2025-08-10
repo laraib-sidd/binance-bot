@@ -17,6 +17,7 @@ Features:
 import asyncio
 from dataclasses import dataclass
 from datetime import datetime
+import os
 from typing import Any, Dict, List, Optional
 
 import asyncpg
@@ -561,24 +562,80 @@ class ConnectionManager:
         )
 
         self._connected = False
+        # Track configuration presence to support conditional connects
+        self._is_postgres_configured = bool(config.get_postgresql_url())
+        self._is_redis_configured = bool(config.get_redis_url())
+        r2_conf = config.get_r2_config()
+        self._is_r2_configured = bool(
+            r2_conf.get("bucket_name")
+            and (
+                r2_conf.get("api_token")
+                or (r2_conf.get("access_key") and r2_conf.get("secret_key"))
+            )
+        )
 
     async def connect_all(self) -> None:
-        """Connect to all services."""
+        """Connect to configured services, skipping unconfigured ones."""
         logger.info("Connecting to all external services...")
 
-        try:
-            # Connect in parallel for faster startup
-            await asyncio.gather(
-                self.postgres.connect(), self.redis.connect(), self.r2.connect()
+        tasks = []
+        task_names = []
+
+        if self._is_postgres_configured:
+            tasks.append(self.postgres.connect())
+            task_names.append("postgresql")
+        else:
+            logger.info("Skipping PostgreSQL connection: not configured")
+
+        if self._is_redis_configured:
+            tasks.append(self.redis.connect())
+            task_names.append("redis")
+        else:
+            logger.info("Skipping Redis connection: not configured")
+
+        if self._is_r2_configured:
+            tasks.append(self.r2.connect())
+            task_names.append("r2")
+        else:
+            logger.info("Skipping R2 connection: not configured")
+
+        # Nothing to connect? mark as not connected and return
+        if not tasks:
+            logger.warning(
+                "No services configured; running with no external connections"
             )
+            self._connected = False
+            return
 
-            self._connected = True
+        strict = (get_config().environment in {"production"}) or (
+            str(os.getenv("HELIOS_STRICT_CONNECTIONS", "false")).lower() == "true"
+        )
+
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+
+        any_success = True in [not isinstance(r, Exception) for r in results]
+        failed = [
+            name
+            for name, r in zip(task_names, results, strict=False)
+            if isinstance(r, Exception)
+        ]
+
+        if failed:
+            logger.error(f"Failed to connect to services: {', '.join(failed)}")
+            if strict:
+                await self.disconnect_all()
+                # Raise the first exception for context
+                first_error = next(e for e in results if isinstance(e, Exception))
+                # Propagate the original exception to surface the root cause
+                raise first_error
+
+        self._connected = any_success and not strict
+        if self._connected:
+            logger.info(
+                "✅ Connected to available services (partial connections allowed)"
+            )
+        elif not failed:
             logger.info("✅ All services connected successfully")
-
-        except Exception as e:
-            logger.error(f"Failed to connect to services: {e}")
-            await self.disconnect_all()
-            raise
 
     async def disconnect_all(self) -> None:
         """Disconnect from all services."""
@@ -600,13 +657,33 @@ class ConnectionManager:
         if not self._connected:
             return {
                 "postgresql": ConnectionHealth(
-                    "postgresql", False, datetime.now(), 0.0, "Not connected"
+                    "postgresql",
+                    False,
+                    datetime.now(),
+                    0.0,
+                    (
+                        "Not configured"
+                        if not self._is_postgres_configured
+                        else "Not connected"
+                    ),
                 ),
                 "redis": ConnectionHealth(
-                    "redis", False, datetime.now(), 0.0, "Not connected"
+                    "redis",
+                    False,
+                    datetime.now(),
+                    0.0,
+                    (
+                        "Not configured"
+                        if not self._is_redis_configured
+                        else "Not connected"
+                    ),
                 ),
                 "r2": ConnectionHealth(
-                    "r2", False, datetime.now(), 0.0, "Not connected"
+                    "r2",
+                    False,
+                    datetime.now(),
+                    0.0,
+                    "Not configured" if not self._is_r2_configured else "Not connected",
                 ),
             }
 
