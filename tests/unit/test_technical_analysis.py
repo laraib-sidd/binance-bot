@@ -28,7 +28,6 @@ class TestTechnicalAnalysis(unittest.TestCase):
         """Test Simple Moving Average calculation."""
         sma_5 = calculate_sma(self.data, length=5)
         self.assertIsNotNone(sma_5)
-        assert sma_5 is not None
         self.assertIsInstance(sma_5, pl.Series)
         self.assertAlmostEqual(sma_5[-1], 122.6)
         self.assertTrue(sma_5.is_null().sum() == 4)
