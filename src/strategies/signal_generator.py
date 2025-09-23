@@ -6,7 +6,7 @@ generating trading signals based on technical indicators.
 """
 
 from enum import Enum
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 import polars as pl
 
@@ -17,6 +17,9 @@ from .technical_analysis import (
     calculate_macd,
     calculate_rsi,
 )
+
+if TYPE_CHECKING:  # avoid runtime import cycle / overhead
+    from src.core.config import TradingConfig
 
 
 class Signal(Enum):
@@ -63,11 +66,45 @@ class SignalGenerator:
         self.macd_confirm = macd_confirm
         self.bb_confirm = bb_confirm
 
+    @staticmethod
+    def from_config(config: "TradingConfig") -> "SignalGenerator":
+        """Construct generator using TA settings from TradingConfig if present."""
+        try:
+            fast = getattr(config, "ta_ema_fast", 10)
+            slow = getattr(config, "ta_ema_slow", 20)
+            adx = getattr(config, "ta_adx_threshold", None)
+            rsi_len = getattr(config, "ta_rsi_length", None)
+            rsi_over = getattr(config, "ta_rsi_overbought", None)
+            macd = getattr(config, "ta_macd_confirm", False)
+            bb = getattr(config, "ta_bb_confirm", False)
+        except AttributeError:
+            fast, slow, adx, rsi_len, rsi_over, macd, bb = (
+                10,
+                20,
+                None,
+                None,
+                None,
+                False,
+                False,
+            )
+        return SignalGenerator(
+            fast_ma_period=fast,
+            slow_ma_period=slow,
+            adx_threshold=adx,
+            rsi_length=rsi_len,
+            rsi_overbought=rsi_over,
+            macd_confirm=macd,
+            bb_confirm=bb,
+        )
+
     def _regime_ok(self, data: pl.DataFrame) -> bool:
         adx = calculate_adx(data, length=14)
         if self.adx_threshold is None or adx is None or len(adx) == 0:
             return True
-        return float(adx[-1]) < float(self.adx_threshold)
+        try:
+            return float(adx[-1]) < float(self.adx_threshold)
+        except Exception:
+            return True
 
     def _rsi_ok(self, data: pl.DataFrame) -> bool:
         if self.rsi_length is None:
@@ -77,13 +114,19 @@ class SignalGenerator:
             return True
         if self.rsi_overbought is None:
             return True
-        return float(rsi[-1]) < float(self.rsi_overbought)
+        try:
+            return float(rsi[-1]) < float(self.rsi_overbought)
+        except Exception:
+            return True
 
     def _macd_ok(self, data: pl.DataFrame) -> bool:
         if not self.macd_confirm:
             return True
         macd, signal_line, _ = calculate_macd(data)
-        return float(macd[-1]) > float(signal_line[-1])
+        try:
+            return float(macd[-1]) > float(signal_line[-1])
+        except Exception:
+            return True
 
     def _bb_ok(self, data: pl.DataFrame) -> bool:
         if not self.bb_confirm:
@@ -92,7 +135,10 @@ class SignalGenerator:
         if result is None:
             return False
         _, middle, _ = result
-        return float(data["close"][-1]) > float(middle[-1])
+        try:
+            return float(data["close"][-1]) > float(middle[-1])
+        except Exception:
+            return True
 
     def generate_signal(self, data: pl.DataFrame) -> Signal:
         """Generate signal using MA crossover with optional confirmations."""
@@ -109,7 +155,10 @@ class SignalGenerator:
         if fast_ema is None or slow_ema is None:
             return Signal.NEUTRAL
 
-        base_buy = fast_ema[-1] > slow_ema[-1]
+        try:
+            base_buy = float(fast_ema[-1]) > float(slow_ema[-1])
+        except Exception:
+            return Signal.NEUTRAL
         if not base_buy:
             return Signal.NEUTRAL
 

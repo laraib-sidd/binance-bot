@@ -525,6 +525,42 @@ def setup_development_environment() -> Tuple[bool, List[str]]:
         return False, []
 
 
+def enforce_environment_safety(config: Optional[TradingConfig] = None) -> None:
+    """Enforce runtime safety gates, fail-safe by default.
+
+    - Production requires explicit HELIOS_PRODUCTION_ENABLE=true
+    - Production must NOT use testnet endpoints
+    - Outside development, partial connections should be avoided (handled in connection manager)
+    """
+    cfg: Optional[TradingConfig]
+    try:
+        cfg = config or get_config()
+    except Exception:
+        cfg = config
+    if cfg is None:
+        raise RuntimeError(
+            "Configuration not loaded; cannot enforce environment safety"
+        )
+
+    env = str(cfg.environment or "").lower()
+    prod_enabled = str(os.getenv("HELIOS_PRODUCTION_ENABLE", "false")).lower() in {
+        "1",
+        "true",
+        "yes",
+        "y",
+    }
+
+    if env == "production":
+        if not prod_enabled:
+            raise RuntimeError(
+                "Production mode disabled: set HELIOS_PRODUCTION_ENABLE=true after readiness checks."
+            )
+        if cfg.binance_testnet:
+            raise RuntimeError(
+                "Production requires BINANCE_TESTNET=false (live endpoints), not testnet."
+            )
+
+
 if __name__ == "__main__":
     # Example usage and testing
     logging.basicConfig(level=logging.INFO)
