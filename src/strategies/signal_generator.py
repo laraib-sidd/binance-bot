@@ -77,7 +77,7 @@ class SignalGenerator:
             rsi_over = getattr(config, "ta_rsi_overbought", None)
             macd = getattr(config, "ta_macd_confirm", False)
             bb = getattr(config, "ta_bb_confirm", False)
-        except Exception:
+        except AttributeError:
             fast, slow, adx, rsi_len, rsi_over, macd, bb = (
                 10,
                 20,
