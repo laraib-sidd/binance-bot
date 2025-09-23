@@ -40,7 +40,7 @@ Unlike standard trading bots, Helios combines:
 ## 🚀 Quick Start
 
 ### Prerequisites
-- **Python 3.11+** (recommended for best performance)
+- **Python 3.11+** (required; matches toolchain and type targets)
 - **Binance Testnet Account** for API keys
 - **UV Package Manager** (optional, but 10-100x faster than pip)
 
@@ -134,7 +134,7 @@ python3 -m pytest
 - **Risk Management**: 1% risk per trade, 25% max drawdown circuit breaker
 
 ## Technology Stack
-- **Language**: Python 3.9+
+- **Language**: Python 3.11+
 - **Exchanges**: Binance (primary), Coinbase (secondary)
 - **Key Libraries**: python-binance, pandas, pandas-ta, apscheduler
 - **Infrastructure**: Local development, cloud VPS for production

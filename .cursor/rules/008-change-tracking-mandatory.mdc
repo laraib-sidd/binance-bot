@@ -1,5 +1,5 @@
 ---
-description:
+description: "Mandatory change tracking rules: CHANGELOG, PROJECT_STATUS, process"
 globs:
 alwaysApply: true
 ---

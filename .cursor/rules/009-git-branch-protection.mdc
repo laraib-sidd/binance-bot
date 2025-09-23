@@ -1,7 +1,7 @@
 ---
-description:
+description: "Branch protection: never push to main; PR workflow and naming"
 globs:
-alwaysApply: false
+alwaysApply: true
 ---
 +description: "Git branch protection and workflow rules"
 +globs: ["**/*"]

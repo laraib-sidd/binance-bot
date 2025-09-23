@@ -1,5 +1,5 @@
 ---
-description:
+description: "Change impact tracking: system, perf, deps, rollback, templates"
 globs:
 alwaysApply: false
 ---
