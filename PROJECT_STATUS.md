@@ -1,7 +1,7 @@
 # Project Status - 2025-01-07
 
 ## Current Version
-- **Version**: 1.5.0 (Completed) → Phase 1.6 in progress
+- **Version**: 1.6.0 (Completed) → Phase 2 in progress
 - **Last Stable Release**: 1.5.0
 - **Development Status**: Ready for Phase 2
 
@@ -15,6 +15,7 @@
     4. ✅ **Refine Architecture**: Resolved circular dependencies and magic strings.
 
 ## Recent Changes
+- **Phase 1.6**: ✅ **COMPLETED** - Regime gating, schema/SQL fixes, CI/tooling
 - **Phase 1.5**: ✅ **COMPLETED** - Enhanced foundational quality and performance
 - **Phase 1.4**: Implemented the Signal Generation Engine using Polars.
 - **Phase 1.3**: Finalized and stabilized the Market Data Pipeline.
@@ -104,7 +105,7 @@
 2. ✅ **Rule framework validated**: Comprehensive rules framework established
 3. ✅ **Development environment setup**: Environment guide and scripts created
 4. ✅ **Documentation complete**: All Phase 0 documentation finalized
-5. **🚀 PHASE 1.6 STARTED**: Regime gating, schema/SQL fixes, CI & tooling
+5. **🚀 PHASE 2 STARTED**: Technical Analysis Engine (production-grade indicators)
 
 ### Phase 1 Implementation Plan (3 days)
 **Phase 1.1** (Day 1): Environment Setup & Configuration

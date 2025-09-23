@@ -21,6 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tooling: configured mypy to resolve the project package via `mypy_path = ["src"]` and set CI step env (`PYTHONPATH=src`) so CI matches local behavior.
 - Documentation: to follow with API docs and user guides in Phase 1.6 docs task.
 
+### 🚀 Phase 2 - Technical Analysis Engine (2025-08-10)
+- Technical Analysis: implemented production-grade ADX using Wilder smoothing with vectorized Polars (`ewm_mean` with alpha=1/length), replacing the prior lightweight proxy.
+- Performance: vectorized positive/negative move calculations and stability guards (clip/fill_null) for ADX pipeline.
+- Branch: `feat/phase-2-technical-analysis` initiated; subsequent indicator work and tests to land under this branch.
+
 ### 🔄 DATABASE ARCHITECTURE IMPROVEMENT - 2024-12-23
 - **Status**: ✅ **COMPLETE - Dedicated Schema & Enhanced Testing**
 - **Breaking Change**: Database now uses dedicated 'helios_trading' schema instead of 'public'
