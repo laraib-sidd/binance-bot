@@ -1,5 +1,5 @@
 ---
-description:
+description: "Documentation standards: API, architecture, change docs, automation"
 globs:
 alwaysApply: false
 ---

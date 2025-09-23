@@ -1,5 +1,5 @@
 ---
-description:
+description: "Phased development & user testing: size limits, approvals, quality gates"
 globs:
 alwaysApply: false
 ---

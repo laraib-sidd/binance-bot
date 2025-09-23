@@ -1,5 +1,5 @@
 ---
-description:
+description: "PR process: diagrams, impact, examples, testing, cleanup of PR_BODY.md"
 globs:
 alwaysApply: false
 ---

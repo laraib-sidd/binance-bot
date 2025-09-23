@@ -6,7 +6,7 @@ This guide walks through setting up the complete development environment for the
 ## Prerequisites
 
 ### System Requirements
-- **Python**: 3.9 or higher
+- **Python**: 3.11 or higher
 - **Git**: Latest version
 - **Operating System**: macOS, Linux, or Windows with WSL
 - **Memory**: Minimum 8GB RAM (16GB recommended)
@@ -31,8 +31,8 @@ ls -la
 
 ### 2. Python Environment Setup
 ```bash
-# Create virtual environment
-python3.9 -m venv venv
+# Create virtual environment (Python 3.11+)
+python3.11 -m venv venv
 
 # Activate virtual environment
 # On macOS/Linux:
@@ -41,7 +41,7 @@ source venv/bin/activate
 # venv\Scripts\activate
 
 # Verify Python version
-python --version  # Should show 3.9+
+python --version  # Should show 3.11+
 ```
 
 ### 3. Install Dependencies

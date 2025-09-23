@@ -1,5 +1,5 @@
 ---
-description:
+description: "Code style rules: black, ruff, mypy, naming, imports, docs"
 globs:
 alwaysApply: false
 ---

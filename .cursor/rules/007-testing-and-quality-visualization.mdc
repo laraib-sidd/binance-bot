@@ -1,5 +1,5 @@
 ---
-description:
+description: "Testing strategy and quality visualization: coverage, dashboards, gates"
 globs:
 alwaysApply: false
 ---

@@ -1,5 +1,5 @@
 ---
-description:
+description: "Comprehensive rules index and enforcement for Helios trading bot"
 globs:
 alwaysApply: true
 ---

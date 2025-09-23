@@ -1,5 +1,5 @@
 ---
-description:
+description: "Security-first rules: credentials, data validation, risk, audit, env gates"
 globs:
 alwaysApply: false
 ---

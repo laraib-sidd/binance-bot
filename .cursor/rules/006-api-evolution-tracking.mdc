@@ -1,5 +1,5 @@
 ---
-description:
+description: "API evolution tracking: versioning, timelines, compatibility, docs"
 globs:
 alwaysApply: false
 ---

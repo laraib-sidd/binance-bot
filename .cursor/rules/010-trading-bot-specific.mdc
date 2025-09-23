@@ -1,5 +1,5 @@
 ---
-description:
+description: "Trading-bot-specific rules: precision, validation, risk, backtest, env"
 globs:
 alwaysApply: false
 ---

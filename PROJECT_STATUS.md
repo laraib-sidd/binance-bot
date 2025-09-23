@@ -1,9 +1,9 @@
-# Project Status - 2025-01-07
+# Project Status - 2025-09-23
 
 ## Current Version
-- **Version**: 1.6.0 (Completed) → Phase 2 in progress
-- **Last Stable Release**: 1.5.0
-- **Development Status**: Ready for Phase 2
+- **Version**: 1.6.1 (Phase A housekeeping)
+- **Last Stable Release**: 1.6.0
+- **Development Status**: Phase 2 in progress (Technical Analysis)
 
 ## Current Focus
 - **Phase 1.5: Foundational Improvements** ✅ **COMPLETED**
@@ -15,6 +15,7 @@
     4. ✅ **Refine Architecture**: Resolved circular dependencies and magic strings.
 
 ## Recent Changes
+- **Phase A (Housekeeping)**: ✅ Aligned Python to 3.11 across docs; added descriptions to all `.cursor/rules`; no code behavior changes
 - **Phase 1.6**: ✅ **COMPLETED** - Regime gating, schema/SQL fixes, CI/tooling
 - **Phase 1.5**: ✅ **COMPLETED** - Enhanced foundational quality and performance
 - **Phase 1.4**: Implemented the Signal Generation Engine using Polars.
@@ -48,6 +49,7 @@
 - **Requirements Analysis**: Complete ✅
 - **API Documentation**: Not started ❌
 - **User Guides**: Not started ❌
+- **Rules Descriptions**: ✅ Completed in `.cursor/rules`
 
 ### Security Implementation
 - **Credential Protection Rules**: Defined ✅
@@ -55,6 +57,7 @@
 - **Audit Trail Requirements**: Defined ✅
 - **Environment Separation**: Defined ✅
 - **Security Implementation**: Not started ❌
+- **Branch Protection Rules**: ✅ Enforced and described
 
 ### Testing Coverage
 - **Unit Testing Framework**: ✅ COMPLETE - 35+ unit tests including mocked BinanceClient tests
@@ -100,12 +103,10 @@
 
 ## Next Steps
 
-### Immediate Priorities (Ready for Implementation)
-1. ✅ **Project organization complete**: All files properly organized
-2. ✅ **Rule framework validated**: Comprehensive rules framework established
-3. ✅ **Development environment setup**: Environment guide and scripts created
-4. ✅ **Documentation complete**: All Phase 0 documentation finalized
-5. **🚀 PHASE 2 STARTED**: Technical Analysis Engine (production-grade indicators)
+### Immediate Priorities (Phase A → B)
+1. Phase A: Documentation alignment and safety gates (in progress)
+2. Phase B: Introduce DB migrations/versioning and observability metrics
+3. Phase 2: Continue Technical Analysis Engine indicators + tests
 
 ### Phase 1 Implementation Plan (3 days)
 **Phase 1.1** (Day 1): Environment Setup & Configuration
@@ -167,6 +168,6 @@
 
 ---
 
-**Last Updated**: 2025-01-07
-**Next Review**: 2025-01-14
-**Status**: Phase 1.5: Foundational Improvements - ✅ COMPLETED | Ready for Phase 2
+**Last Updated**: 2025-09-23
+**Next Review**: 2025-09-30
+**Status**: Phase 2 active; Phase A housekeeping completed
