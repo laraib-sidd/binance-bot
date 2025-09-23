@@ -409,7 +409,8 @@ class BinanceClient:
         """
         # Use batch endpoint for efficiency
         symbols_upper = [s.upper() for s in symbols]
-        params = {"symbols": json.dumps(symbols_upper)}
+        # Binance expects a compact JSON array string without spaces
+        params = {"symbols": json.dumps(symbols_upper, separators=(",", ":"))}
 
         response = cast(
             List[Dict[str, Any]],

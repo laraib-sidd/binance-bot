@@ -7,11 +7,11 @@ These tests validate end-to-end functionality with actual API calls.
 IMPORTANT: These tests require valid testnet API credentials in .env file.
 """
 
-import asyncio
 import logging
-from typing import AsyncGenerator, Generator
+from typing import AsyncGenerator
 
 import pytest
+import pytest_asyncio
 
 from src.api.binance_client import BinanceClient
 from src.api.exceptions import BinanceAPIError
@@ -23,20 +23,10 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-# Scope the event loop to the entire test session for efficiency
+# Rely on pytest-asyncio's default event loop
 
 
-@pytest.fixture(scope="session")
-def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
-    """Create an instance of the default event loop for the session."""
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    try:
-        yield loop
-    finally:
-        loop.close()
-
-
-@pytest.fixture(scope="class")
+@pytest_asyncio.fixture(loop_scope="function")
 async def client() -> AsyncGenerator[BinanceClient, None]:
     """
     Create and configure a single Binance client instance for the test class.
@@ -54,7 +44,6 @@ async def client() -> AsyncGenerator[BinanceClient, None]:
         yield c
 
 
-@pytest.mark.usefixtures("client")
 class TestBinanceAPIIntegration:
     """Integration tests for Binance API client."""
 

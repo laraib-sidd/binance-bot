@@ -119,6 +119,13 @@ class PostgreSQLManager:
             raise RuntimeError("PostgreSQL pool not initialized")
 
         async with self.pool.acquire() as conn:
+            # Ensure our dedicated schema is active for every new session
+            try:
+                schema = get_config().database_schema
+                await conn.execute(f"SET search_path = {schema}, public")
+            except Exception:
+                # Do not fail if setting search_path errors; continue to execute
+                pass
             await conn.execute(query, *args)
 
     async def executemany(self, query: str, args_list: List[tuple[Any, ...]]) -> None:
@@ -130,6 +137,11 @@ class PostgreSQLManager:
             return
 
         async with self.pool.acquire() as conn:
+            try:
+                schema = get_config().database_schema
+                await conn.execute(f"SET search_path = {schema}, public")
+            except Exception:
+                pass
             # For large datasets (>1000 rows), use transaction for better performance
             if len(args_list) > 1000:
                 async with conn.transaction():
@@ -144,6 +156,11 @@ class PostgreSQLManager:
             raise RuntimeError("PostgreSQL pool not initialized")
 
         async with self.pool.acquire() as conn:
+            try:
+                schema = get_config().database_schema
+                await conn.execute(f"SET search_path = {schema}, public")
+            except Exception:
+                pass
             rows = await conn.fetch(query, *args)
             return [dict(row) for row in rows]
 
@@ -153,6 +170,11 @@ class PostgreSQLManager:
             raise RuntimeError("PostgreSQL pool not initialized")
 
         async with self.pool.acquire() as conn:
+            try:
+                schema = get_config().database_schema
+                await conn.execute(f"SET search_path = {schema}, public")
+            except Exception:
+                pass
             row = await conn.fetchrow(query, *args)
             return dict(row) if row else None
 
@@ -162,6 +184,11 @@ class PostgreSQLManager:
             raise RuntimeError("PostgreSQL pool not initialized")
 
         async with self.pool.acquire() as conn:
+            try:
+                schema = get_config().database_schema
+                await conn.execute(f"SET search_path = {schema}, public")
+            except Exception:
+                pass
             return await conn.fetchval(query, *args)
 
     async def health_check(self) -> ConnectionHealth:
@@ -725,31 +752,48 @@ class ConnectionManager:
 
 # Global connection manager instance
 _connection_manager: Optional[ConnectionManager] = None
+_connection_manager_loop: Optional[asyncio.AbstractEventLoop] = None
 
 
 async def get_connection_manager() -> ConnectionManager:
     """Get or create global connection manager."""
-    global _connection_manager
+    global _connection_manager, _connection_manager_loop
 
-    if _connection_manager is None:
+    current_loop = asyncio.get_running_loop()
+
+    # If no manager exists, or the event loop has changed (e.g., new test), recreate it
+    if (
+        _connection_manager is None
+        or _connection_manager_loop is None
+        or _connection_manager_loop is not current_loop
+    ):
+        # Clean up any existing manager bound to a different loop
+        if _connection_manager is not None:
+            try:
+                await _connection_manager.disconnect_all()
+            except Exception as e:
+                logger.warning(f"Error disconnecting previous manager: {e}")
+
         _connection_manager = ConnectionManager()
         await _connection_manager.connect_all()
+        _connection_manager_loop = current_loop
 
     return _connection_manager
 
 
 async def close_connections() -> None:
     """Close all connections (for cleanup)."""
-    global _connection_manager
+    global _connection_manager, _connection_manager_loop
 
     if _connection_manager:
         await _connection_manager.disconnect_all()
         _connection_manager = None
+        _connection_manager_loop = None
 
 
 async def reset_connection_manager() -> None:
     """Reset the global connection manager (for testing/cleanup)."""
-    global _connection_manager
+    global _connection_manager, _connection_manager_loop
 
     if _connection_manager:
         try:
@@ -758,3 +802,4 @@ async def reset_connection_manager() -> None:
             logger.warning(f"Error disconnecting manager during reset: {e}")
         finally:
             _connection_manager = None
+            _connection_manager_loop = None

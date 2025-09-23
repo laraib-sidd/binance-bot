@@ -566,6 +566,7 @@ class MarketDataPipeline:
             await self.binance_client.close()
 
         # The connection manager is now managed externally, so we don't reset it here.
+        # but ensure we do not keep a stale manager bound to a different event loop
         self.connection_manager = None
 
         logger.info("Pipeline stopped")
