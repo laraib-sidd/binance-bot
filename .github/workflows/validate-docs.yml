@@ -1,0 +1,32 @@
+name: validate-docs-and-status
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  check-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Validate CHANGELOG and PROJECT_STATUS updated
+        run: |
+          set -e
+          git fetch origin ${{ github.base_ref }} --depth=1
+          base_sha=$(git rev-parse origin/${{ github.base_ref }})
+          echo "Base: $base_sha"
+          # List changed files
+          CHANGED=$(git diff --name-only "$base_sha"..HEAD)
+          echo "$CHANGED"
+          # Require either local/docs/CHANGELOG.md or docs/CHANGELOG.md updated
+          if ! echo "$CHANGED" | grep -E '^(local/)?docs/CHANGELOG.md$' >/dev/null; then
+            echo "::error file=local/docs/CHANGELOG.md::Missing changelog update (local/docs/CHANGELOG.md or docs/CHANGELOG.md)"
+            exit 1
+          fi
+          # Require PROJECT_STATUS.md updated
+          if ! echo "$CHANGED" | grep -E '^PROJECT_STATUS.md$' >/dev/null; then
+            echo "::error file=PROJECT_STATUS.md::Missing status update (PROJECT_STATUS.md)"
+            exit 1
+          fi
+          echo "Changelog and project status updates found."

@@ -48,26 +48,18 @@ timeline
               : automated_training
 ```
 
-## System Architecture Evolution
+## System Architecture Evolution (Helios context)
 
 ### Current State Visualization
 ```mermaid
 graph TB
-    subgraph "v2.1 - Current Architecture"
-        A[FastMCP Server] --> B[Request Router]
-        B --> C[SQL Handler]
-        B --> D[Jobs Handler]
-        B --> E[Clusters Handler]
-        B --> F[Streaming Handler]
-
-        C --> G[Databricks SQL]
-        D --> H[Databricks Jobs API]
-        E --> I[Databricks Clusters API]
-        F --> J[Kafka/Event Hub]
-
-        K[Authentication] --> A
-        L[Rate Limiting] --> A
-        M[Monitoring] --> A
+    subgraph "Helios Core"
+        A[Binance Client] --> B[Rate Limiter]
+        A --> C[Market Data Pipeline]
+        C --> D[PostgreSQL Schema]
+        C --> E[Redis Cache]
+        C --> F[R2 Archive]
+        C --> G[Signal Engine]
     end
 
     style F fill:#e8f5e8

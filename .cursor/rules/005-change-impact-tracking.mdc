@@ -9,6 +9,16 @@ alwaysApply: false
 Every change should be analyzed for its broader impact on the system. This helps maintain system integrity and prevents unexpected side effects as the project grows.
 
 ## Impact Categories
+### Quick Impact Matrix (for small changes)
+```markdown
+| Area          | Change Type        | Impact Level | Notes                         |
+|---------------|--------------------|--------------|-------------------------------|
+| Runtime Code  | none / minor / major | low/med/high |                               |
+| Performance   | none / improved / regressed | low/med/high | p95/p99 where relevant    |
+| Security      | none / improved / risk | low/med/high | secrets, auth, validation     |
+| Data/Schema   | none / additive / breaking | low/med/high | migrations, backfill needed? |
+| Docs/Process  | updated / missing  | —            |                               |
+```
 
 ### 1. API Impact Analysis
 For any API-related changes, document:

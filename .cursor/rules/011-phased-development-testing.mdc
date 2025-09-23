@@ -38,6 +38,17 @@ graph TD
 - **Testable independently** - each phase must be demonstrable
 - **Risk-appropriate** - financial features get extra scrutiny
 
+### Phase checklist template (include in PR)
+```markdown
+## Phase Checklist
+- [ ] Scope clearly stated (≤ 3 days dev)
+- [ ] Tests: unit + integration updated
+- [ ] Docs updated (README/guides if user-facing)
+- [ ] Changelog + Project status updated
+- [ ] Architecture diagram included
+- [ ] Risk & rollback noted
+```
+
 ## Role Definitions
 
 ### Developer Responsibilities (AI Assistant)

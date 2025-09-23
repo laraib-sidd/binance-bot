@@ -17,6 +17,12 @@ Use descriptive branch names with prefixes:
 - `arch/add-streaming-pipeline` - Architecture changes
 
 ## PR Requirements
+### PR Title Convention
+- Use conventional commits and scope: `chore(rules): ...`, `feat(strategy): ...`, `fix(pipeline): ...`
+
+### Recommended PR Size
+- Prefer ≤ 400 LOC changed (excluding generated files, docs ok) per PR
+- Split large features into phased PRs (see 011) to maintain review quality
 
 ### 1. Architecture Diagrams (Required)
 Every PR must include a Mermaid diagram showing:
