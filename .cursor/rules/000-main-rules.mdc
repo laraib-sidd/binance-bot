@@ -16,6 +16,12 @@ Apply these comprehensive rules for this Python Trading Bot project. Every rule 
 ## Overview
 This is Helios - a sophisticated cryptocurrency trading bot implementing Signal-Driven Dynamic Grid Trading strategy. These rules ensure financial software quality, security, and risk management standards.
 
+## How to use these rules (new contributors)
+- Start with this index to understand the scope
+- Skim 001 (style), 003 (security), 009 (git) first – these apply to every PR
+- For feature work, also read 004 (PR process), 005 (impact), 007 (testing), 011 (phasing)
+- For trading features, read 010 in full; for data/clients, 006 (evolution) is helpful
+
 ## Rule Categories
 
 ### 1. Python Code Style

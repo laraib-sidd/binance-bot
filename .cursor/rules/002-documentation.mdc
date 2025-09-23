@@ -17,11 +17,10 @@ Maintain comprehensive README with:
 - Contributing guidelines
 - Troubleshooting section
 
-### API Documentation Standards
+### API Documentation Standards (Helios examples)
 ```python
-@mcp.tool()
-def manage_cluster(cluster_id: int, action: str, config: Dict = None) -> str:
-    """Manage Databricks cluster operations with comprehensive control
+async def get_ticker_price(symbol: str) -> TickerData:
+    """Return validated 24h ticker for a symbol (Binance testnet by default).
 
     This function provides full cluster lifecycle management including
     creation, scaling, monitoring, and cost optimization features.
@@ -84,51 +83,25 @@ def manage_cluster(cluster_id: int, action: str, config: Dict = None) -> str:
 ```markdown
 # System Architecture
 
-## Current Architecture (v2.1)
+## Current Architecture (v1.x)
 ```mermaid
 graph TB
-    subgraph "Client Layer"
-        A[API Clients]
-        B[SDK Users]
-        C[Web Dashboard]
+    subgraph "Core"
+        A[Binance Client]
+        B[Rate Limiter]
+        C[Market Data Pipeline]
+        D[Database Schema]
+        E[Redis Cache]
+        F[R2 Archive]
+        G[Signal Engine]
     end
 
-    subgraph "API Gateway"
-        D[FastMCP Server]
-        E[Request Router]
-        F[Authentication]
-        G[Rate Limiting]
-    end
-
-    subgraph "Service Layer"
-        H[SQL Service]
-        I[Jobs Service]
-        J[Clusters Service]
-        K[Streaming Service]
-    end
-
-    subgraph "External Services"
-        L[Databricks SQL Warehouse]
-        M[Databricks REST API]
-        N[Kafka/Event Hub]
-        O[Monitoring Stack]
-    end
-
-    A --> D
-    B --> D
+    A --> B
+    A --> C
     C --> D
-    D --> E
-    E --> F
-    E --> G
-    E --> H
-    E --> I
-    E --> J
-    E --> K
-    H --> L
-    I --> M
-    J --> M
-    K --> N
-    D --> O
+    C --> E
+    C --> F
+    C --> G
 ```
 
 ## Component Responsibilities

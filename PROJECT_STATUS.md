@@ -15,6 +15,7 @@
     4. ✅ **Refine Architecture**: Resolved circular dependencies and magic strings.
 
 ## Recent Changes
+- **Rules/CI**: Added CI workflow to enforce CHANGELOG and PROJECT_STATUS updates on PRs; refined rules (000, 001, 002, 004–007, 010–011)
 - **Phase A (Housekeeping)**: ✅ Aligned Python to 3.11 across docs; added descriptions to all `.cursor/rules`; no code behavior changes
 - **Phase 1.6**: ✅ **COMPLETED** - Regime gating, schema/SQL fixes, CI/tooling
 - **Phase 1.5**: ✅ **COMPLETED** - Enhanced foundational quality and performance

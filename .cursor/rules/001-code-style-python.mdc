@@ -10,6 +10,16 @@ alwaysApply: false
 - Use `isort` for import sorting
 - Maximum line length: 88 characters (black default)
 
+### Ruff profile
+- Enable: E,W,F,I,C,B (pycodestyle, pyflakes, isort, comprehensions, bugbear)
+- Ignore: E501 (managed by black)
+- Prefer fixes: `ruff --fix --exit-non-zero-on-fix`
+
+### MyPy strictness
+- Target: Python 3.11; PEP 561 packages checked
+- Required: no implicit Optional, disallow untyped defs/decors, check untyped defs
+- Pattern: add precise types for public APIs; avoid `Any`; prefer `Decimal` for money
+
 ## Code Organization
 ```python
 # Import order:

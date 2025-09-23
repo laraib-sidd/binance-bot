@@ -139,7 +139,7 @@ xychart-beta
 
 ## Quality Metrics Dashboard
 
-### Code Quality Visualization
+### Code Quality Visualization (Targets)
 ```mermaid
 graph LR
     subgraph "Code Quality Metrics"
@@ -151,7 +151,7 @@ graph LR
     end
 
     subgraph "Quality Gates"
-        F[Coverage ≥ 80%] --> F1[✅ PASS]
+        F[Coverage ≥ 85% overall; critical paths 100%] --> F1[✅ PASS]
         G[Complexity ≤ 10] --> G1[⚠️ REVIEW]
         H[Debt ≤ 8 hours] --> H1[✅ PASS]
         I[Security = 0] --> I1[⚠️ MINOR]
