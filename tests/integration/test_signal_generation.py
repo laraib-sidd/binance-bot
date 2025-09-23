@@ -8,6 +8,7 @@ import pytest
 project_root = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(project_root))
 
+from src.core.config import TradingConfig  # noqa: E402
 from src.strategies.signal_generator import Signal, SignalGenerator  # noqa: E402
 
 
@@ -64,6 +65,20 @@ def test_insufficient_data_for_signal(mock_ohlcv_data: pl.DataFrame) -> None:
     signal_generator = SignalGenerator(fast_ma_period=3, slow_ma_period=5)
     signal = signal_generator.generate_signal(insufficient_data)
     assert signal == Signal.NEUTRAL
+
+
+def test_signal_generator_from_config(mock_ohlcv_data: pl.DataFrame) -> None:
+    cfg = TradingConfig(
+        binance_api_key="x" * 64,
+        binance_api_secret="y" * 64,
+        validate_on_init=False,
+    )
+    # Override TA params
+    cfg.ta_ema_fast = 3
+    cfg.ta_ema_slow = 5
+    gen = SignalGenerator.from_config(cfg)
+    assert isinstance(gen, SignalGenerator)
+    assert gen.fast_ma_period == 3 and gen.slow_ma_period == 5
 
 
 def test_signal_generator_init_validation() -> None:

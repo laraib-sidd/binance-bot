@@ -12,6 +12,7 @@ import asyncio
 import logging
 
 from .core.config import load_configuration
+from .core.environment import enforce_environment_safety
 from .data.connection_managers import close_connections
 from .data.market_data_pipeline import MarketDataPipeline
 from .utils.logging import setup_logging
@@ -29,7 +30,10 @@ async def main() -> None:
 
     pipeline = None
     try:
-        # 2. Initialize and start the market data pipeline (handles DB/schema/conn setup)
+        # 2. Enforce environment safety gates before connecting
+        enforce_environment_safety(config)
+
+        # 3. Initialize and start the market data pipeline (handles DB/schema/conn setup)
         pipeline = MarketDataPipeline()
         await (
             pipeline.initialize()
