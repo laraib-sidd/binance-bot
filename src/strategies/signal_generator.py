@@ -77,7 +77,7 @@ class SignalGenerator:
             rsi_over = getattr(config, "ta_rsi_overbought", None)
             macd = getattr(config, "ta_macd_confirm", False)
             bb = getattr(config, "ta_bb_confirm", False)
-        except Exception:
+        except AttributeError:
             fast, slow, adx, rsi_len, rsi_over, macd, bb = (
                 10,
                 20,
@@ -103,7 +103,7 @@ class SignalGenerator:
             return True
         try:
             return float(adx[-1]) < float(self.adx_threshold)
-        except Exception:
+        except (TypeError, ValueError, IndexError):
             return True
 
     def _rsi_ok(self, data: pl.DataFrame) -> bool:
@@ -116,7 +116,7 @@ class SignalGenerator:
             return True
         try:
             return float(rsi[-1]) < float(self.rsi_overbought)
-        except Exception:
+        except (TypeError, ValueError, IndexError):
             return True
 
     def _macd_ok(self, data: pl.DataFrame) -> bool:
@@ -125,7 +125,7 @@ class SignalGenerator:
         macd, signal_line, _ = calculate_macd(data)
         try:
             return float(macd[-1]) > float(signal_line[-1])
-        except Exception:
+        except (TypeError, ValueError, IndexError):
             return True
 
     def _bb_ok(self, data: pl.DataFrame) -> bool:
@@ -137,7 +137,7 @@ class SignalGenerator:
         _, middle, _ = result
         try:
             return float(data["close"][-1]) > float(middle[-1])
-        except Exception:
+        except (TypeError, ValueError, IndexError):
             return True
 
     def generate_signal(self, data: pl.DataFrame) -> Signal:
@@ -157,7 +157,7 @@ class SignalGenerator:
 
         try:
             base_buy = float(fast_ema[-1]) > float(slow_ema[-1])
-        except Exception:
+        except (TypeError, ValueError, IndexError):
             return Signal.NEUTRAL
         if not base_buy:
             return Signal.NEUTRAL
