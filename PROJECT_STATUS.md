@@ -18,6 +18,7 @@
 - **Rules/CI**: Added CI workflow to enforce CHANGELOG and PROJECT_STATUS updates on PRs; refined rules (000, 001, 002, 004–007, 010–011)
 - **Environment Safety**: Introduced runtime safety gates with `HELIOS_PRODUCTION_ENABLE` and testnet checks; integrated in `src/main.py`.
 - **TA Engine**: Added `SignalGenerator.from_config` and hardened indicator edge handling.
+- **Backtesting**: Added minimal backtest runner and unit test to start validation loop.
 - **Phase A (Housekeeping)**: ✅ Aligned Python to 3.11 across docs; added descriptions to all `.cursor/rules`; no code behavior changes
 - **Phase 1.6**: ✅ **COMPLETED** - Regime gating, schema/SQL fixes, CI/tooling
 - **Phase 1.5**: ✅ **COMPLETED** - Enhanced foundational quality and performance
