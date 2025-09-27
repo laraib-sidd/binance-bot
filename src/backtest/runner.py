@@ -61,37 +61,22 @@ def run_backtest(
         return BacktestResult(0.0, 0.0, 0.0, 0, 0)
 
     equity = [initial_equity]
-    position = 0  # 0 or 1 (long)
-    entry_price = None
     total_trades = 0
     daily_returns: List[float] = []
 
     for i in range(1, n):
-        # signal change
+        # Trades counted on transition 0 -> 1 (enter on close[i])
         if signals[i - 1] == 0 and signals[i] == 1:
-            position = 1
-            entry_price = closes[i]
             total_trades += 1
-        elif signals[i - 1] == 1 and signals[i] == 0:
-            # close position
-            if entry_price and entry_price > 0:
-                pnl = (closes[i] - entry_price) / entry_price
-                equity.append(equity[-1] * (1.0 + pnl))
-                daily_returns.append(pnl)
-            else:
-                equity.append(equity[-1])
-            position = 0
-            entry_price = None
-            continue
 
-        # mark to market if in position
-        if position == 1 and entry_price and entry_price > 0:
-            pnl = (closes[i] - entry_price) / entry_price
-            equity.append(equity[-1] * (1.0 + pnl))
-            daily_returns.append(pnl)
+        # Apply period return based on whether we were IN a position during (i-1 -> i)
+        if signals[i - 1] == 1 and closes[i - 1] > 0:
+            r_t = (closes[i] - closes[i - 1]) / closes[i - 1]
         else:
-            equity.append(equity[-1])
-            daily_returns.append(0.0)
+            r_t = 0.0
+
+        equity.append(equity[-1] * (1.0 + r_t))
+        daily_returns.append(r_t)
 
     total_return, max_dd, sharpe = compute_simple_kpis(equity, daily_returns)
     # days approx by rows

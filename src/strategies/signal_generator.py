@@ -69,24 +69,13 @@ class SignalGenerator:
     @staticmethod
     def from_config(config: "TradingConfig") -> "SignalGenerator":
         """Construct generator using TA settings from TradingConfig if present."""
-        try:
-            fast = getattr(config, "ta_ema_fast", 10)
-            slow = getattr(config, "ta_ema_slow", 20)
-            adx = getattr(config, "ta_adx_threshold", None)
-            rsi_len = getattr(config, "ta_rsi_length", None)
-            rsi_over = getattr(config, "ta_rsi_overbought", None)
-            macd = getattr(config, "ta_macd_confirm", False)
-            bb = getattr(config, "ta_bb_confirm", False)
-        except AttributeError:
-            fast, slow, adx, rsi_len, rsi_over, macd, bb = (
-                10,
-                20,
-                None,
-                None,
-                None,
-                False,
-                False,
-            )
+        fast = getattr(config, "ta_ema_fast", 10)
+        slow = getattr(config, "ta_ema_slow", 20)
+        adx = getattr(config, "ta_adx_threshold", None)
+        rsi_len = getattr(config, "ta_rsi_length", None)
+        rsi_over = getattr(config, "ta_rsi_overbought", None)
+        macd = getattr(config, "ta_macd_confirm", False)
+        bb = getattr(config, "ta_bb_confirm", False)
         return SignalGenerator(
             fast_ma_period=fast,
             slow_ma_period=slow,
