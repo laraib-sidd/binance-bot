@@ -299,7 +299,7 @@ class EnvironmentValidator:
                     f"Low disk space: {self.system_info.disk_space_available_gb:.1f}GB (recommend 5GB+)"
                 )
 
-        except Exception as e:
+        except OSError as e:
             logger.debug(f"Could not validate system resources: {e}")
 
     def _validate_configuration(self, config: TradingConfig) -> None:
@@ -308,7 +308,7 @@ class EnvironmentValidator:
             # Configuration is already validated in its __post_init__
             self.system_info.environment_valid = True
             logger.info(f"✅ Configuration valid for environment: {config.environment}")
-        except Exception as e:
+        except (ValueError, TypeError) as e:
             self.system_info.validation_errors.append(
                 f"Configuration validation failed: {e}"
             )
@@ -378,7 +378,7 @@ class EnvironmentValidator:
                     full_path.mkdir(parents=True, exist_ok=True)
                     created_dirs.append(dir_path)
                     logger.info(f"✅ Created directory: {dir_path}")
-                except Exception as e:
+                except OSError as e:
                     logger.error(f"❌ Failed to create directory {dir_path}: {e}")
 
         return created_dirs
@@ -505,7 +505,7 @@ def is_environment_valid(config: Optional[TradingConfig] = None) -> bool:
     try:
         system_info = validate_environment(config)
         return system_info.is_valid()
-    except Exception as e:
+    except (RuntimeError, ValueError) as e:
         logger.error(f"Environment validation failed: {e}")
         return False
 
@@ -520,7 +520,7 @@ def setup_development_environment() -> Tuple[bool, List[str]]:
     try:
         created_dirs = environment_validator.create_missing_directories()
         return True, created_dirs
-    except Exception as e:
+    except OSError as e:
         logger.error(f"Failed to setup development environment: {e}")
         return False, []
 
@@ -535,7 +535,7 @@ def enforce_environment_safety(config: Optional[TradingConfig] = None) -> None:
     cfg: Optional[TradingConfig]
     try:
         cfg = config or get_config()
-    except Exception:
+    except RuntimeError:
         cfg = config
     if cfg is None:
         raise RuntimeError(
