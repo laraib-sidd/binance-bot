@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import os
 from typing import Callable, List, Tuple
 
 import polars as pl
@@ -64,6 +65,7 @@ def run_backtest(
     total_trades = 0
     daily_returns: List[float] = []
 
+    debug = bool(int(os.getenv("HELIOS_DEBUG_BACKTEST", "0")))
     for i in range(1, n):
         # Trades counted on transition 0 -> 1 (enter on close[i])
         if signals[i - 1] == 0 and signals[i] == 1:
@@ -75,7 +77,12 @@ def run_backtest(
         else:
             r_t = 0.0
 
-        equity.append(equity[-1] * (1.0 + r_t))
+        next_equity = equity[-1] * (1.0 + r_t)
+        if debug:
+            # basic guardrail to catch NaN during development
+            if not (next_equity == next_equity):  # NaN check
+                raise RuntimeError()
+        equity.append(next_equity)
         daily_returns.append(r_t)
 
     total_return, max_dd, sharpe = compute_simple_kpis(equity, daily_returns)

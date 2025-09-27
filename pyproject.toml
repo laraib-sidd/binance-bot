@@ -124,20 +124,9 @@ helios-test-pipeline = "scripts.test_data_pipeline:run"
 [tool.black]
 line-length = 88
 target-version = ['py311']
-include = '\.pyi?$'
+include = '\\.pyi?$'
 exclude = '''
-/(
-    \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | _build
-  | buck-out
-  | build
-  | dist
-)/
+/(\n    \\.eggs\n  | \\.git\n  | \\.hg\n  | \\.mypy_cache\n  | \\.tox\n  | \\.venv\n  | _build\n  | buck-out\n  | build\n  | dist\n)/
 '''
 
 [tool.ruff]
@@ -152,6 +141,8 @@ select = [
     "I",  # isort
     "C",  # flake8-comprehensions
     "B",  # flake8-bugbear
+    "BLE", # flake8-blind-except
+    "TRY", # tryceratops
 ]
 ignore = ["E501"] # line too long, handled by black
 
