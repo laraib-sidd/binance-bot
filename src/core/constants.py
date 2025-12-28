@@ -24,6 +24,9 @@ class DatabaseConstants:
     TABLE_OHLCV_1D = "ohlcv_1d"
     TABLE_TRADING_SESSIONS = "trading_sessions"
     TABLE_DATA_QUALITY_METRICS = "data_quality_metrics"
+    TABLE_ORDERS = "orders"
+    TABLE_POSITIONS = "positions"
+    TABLE_ORDER_HISTORY = "order_history"
 
     # All table names for iteration
     ALL_TABLES = [
@@ -35,6 +38,9 @@ class DatabaseConstants:
         TABLE_OHLCV_1D,
         TABLE_TRADING_SESSIONS,
         TABLE_DATA_QUALITY_METRICS,
+        TABLE_ORDERS,
+        TABLE_POSITIONS,
+        TABLE_ORDER_HISTORY,
     ]
 
     # OHLCV tables only

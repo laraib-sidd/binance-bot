@@ -264,7 +264,9 @@ class RedisManager:
             # Test connection
             client = self.client
             assert client is not None
-            await client.ping()
+            ping_result = client.ping()
+            if hasattr(ping_result, "__await__"):
+                await ping_result
 
             response_time = (datetime.now() - start_time).total_seconds() * 1000
             self._health_status = ConnectionHealth(
@@ -336,7 +338,9 @@ class RedisManager:
             start_time = datetime.now()
             client = self.client
             assert client is not None
-            await client.ping()
+            ping_result = client.ping()
+            if hasattr(ping_result, "__await__"):
+                await ping_result
             response_time = (datetime.now() - start_time).total_seconds() * 1000
 
             self._health_status = ConnectionHealth(

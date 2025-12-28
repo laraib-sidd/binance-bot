@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - Current Development
 
+### 📦 Phase 2 - Order Management System (2025-06-28)
+
+#### Added
+- **Order Models** (`src/trading/order_models.py`):
+  - `Order` dataclass with full lifecycle tracking (PENDING → FILLED/CANCELLED)
+  - `Position` dataclass with real-time P&L calculations
+  - Decimal precision for all monetary values (rule 010 compliance)
+  - Automatic order ID generation with timestamp prefix
+
+- **Order Validator** (`src/trading/order_validator.py`):
+  - Pre-order validation with 5% balance safety buffer
+  - Symbol validity and quantity/price constraint validation
+
+- **Order Manager** (`src/trading/order_manager.py`):
+  - Order placement, cancellation, and status sync
+  - Exchange info loading for validation rules
+
+- **Position Tracker** (`src/trading/position_tracker.py`):
+  - Real-time P&L tracking with trade history
+  - Portfolio summary and commission tracking
+
+- **Database Schema**: Added orders, positions, order_history tables
+- **Unit Tests**: 93 new tests covering all trading components
+- **API Documentation**: `docs/api/ORDER_MANAGEMENT.md`
+
 ### 🚀 Phase 1.6 - Regime Gating, Schema Fixes, CI (2025-01-10)
 - Added regime-aware gating in `SignalGenerator` using a lightweight ADX proxy (`adx_threshold` configurable). Grid/entries disabled during strong trend regimes.
 - Fixed logging initialization in `src/main.py` to pass full `TradingConfig` to logging setup.

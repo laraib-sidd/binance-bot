@@ -11,6 +11,9 @@ Tables:
 - ohlcv_1h: 1-hour OHLCV candlestick data
 - trading_sessions: Trading session metadata
 - data_quality_metrics: Data quality monitoring
+- orders: Order lifecycle tracking with audit trail
+- positions: Open position tracking with P&L
+- order_history: Order state change history for audit
 """
 
 from datetime import datetime, timezone
@@ -83,6 +86,9 @@ class DatabaseSchema:
         await self._create_ohlcv_tables()
         await self._create_trading_sessions_table()
         await self._create_data_quality_table()
+        await self._create_orders_table()
+        await self._create_positions_table()
+        await self._create_order_history_table()
         await self._create_indexes()
 
         logger.info("✅ Database schema created successfully")
@@ -234,6 +240,103 @@ class DatabaseSchema:
         await cm.postgres.execute(create_table_sql)
         logger.debug("Created data_quality_metrics table")
 
+    async def _create_orders_table(self) -> None:
+        """Create orders table for order lifecycle tracking."""
+
+        create_table_sql = f"""
+        CREATE TABLE IF NOT EXISTS {self.schema_name}.orders (
+            order_id VARCHAR(50) PRIMARY KEY,
+            symbol VARCHAR(20) NOT NULL,
+            side VARCHAR(4) NOT NULL,
+            order_type VARCHAR(15) NOT NULL,
+            quantity DECIMAL(20, 8) NOT NULL,
+            price DECIMAL(20, 8),
+            stop_price DECIMAL(20, 8),
+            status VARCHAR(20) NOT NULL,
+            time_in_force VARCHAR(10) DEFAULT 'GTC',
+            filled_quantity DECIMAL(20, 8) DEFAULT 0,
+            average_fill_price DECIMAL(20, 8),
+            commission DECIMAL(20, 8) DEFAULT 0,
+            commission_asset VARCHAR(10),
+            exchange_order_id VARCHAR(50),
+            client_order_id VARCHAR(50),
+            notes TEXT,
+            created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+            updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
+
+            -- Constraints
+            CONSTRAINT orders_side_valid CHECK (side IN ('BUY', 'SELL')),
+            CONSTRAINT orders_type_valid CHECK (order_type IN ('MARKET', 'LIMIT', 'STOP_LIMIT', 'STOP_MARKET')),
+            CONSTRAINT orders_status_valid CHECK (status IN ('PENDING', 'SUBMITTED', 'OPEN', 'PARTIALLY_FILLED', 'FILLED', 'CANCELLED', 'REJECTED', 'EXPIRED')),
+            CONSTRAINT orders_quantity_positive CHECK (quantity > 0),
+            CONSTRAINT orders_price_positive CHECK (price IS NULL OR price > 0),
+            CONSTRAINT orders_filled_valid CHECK (filled_quantity >= 0 AND filled_quantity <= quantity)
+        );
+
+        -- Add comment
+        COMMENT ON TABLE {self.schema_name}.orders IS 'Trading order lifecycle tracking with full audit trail';
+        """
+
+        cm = self.connection_manager
+        assert cm is not None
+        await cm.postgres.execute(create_table_sql)
+        logger.debug("Created orders table")
+
+    async def _create_positions_table(self) -> None:
+        """Create positions table for position tracking."""
+
+        create_table_sql = f"""
+        CREATE TABLE IF NOT EXISTS {self.schema_name}.positions (
+            id SERIAL PRIMARY KEY,
+            symbol VARCHAR(20) NOT NULL UNIQUE,
+            side VARCHAR(5) NOT NULL,
+            quantity DECIMAL(20, 8) NOT NULL,
+            entry_price DECIMAL(20, 8) NOT NULL,
+            current_price DECIMAL(20, 8) NOT NULL,
+            realized_pnl DECIMAL(20, 8) DEFAULT 0,
+            total_commission DECIMAL(20, 8) DEFAULT 0,
+            opened_at TIMESTAMP WITH TIME ZONE NOT NULL,
+            updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
+
+            -- Constraints
+            CONSTRAINT positions_side_valid CHECK (side IN ('LONG', 'SHORT', 'FLAT')),
+            CONSTRAINT positions_quantity_valid CHECK (quantity >= 0),
+            CONSTRAINT positions_prices_positive CHECK (entry_price >= 0 AND current_price >= 0)
+        );
+
+        -- Add comment
+        COMMENT ON TABLE {self.schema_name}.positions IS 'Open position tracking with P&L calculations';
+        """
+
+        cm = self.connection_manager
+        assert cm is not None
+        await cm.postgres.execute(create_table_sql)
+        logger.debug("Created positions table")
+
+    async def _create_order_history_table(self) -> None:
+        """Create order_history table for order state change audit trail."""
+
+        create_table_sql = f"""
+        CREATE TABLE IF NOT EXISTS {self.schema_name}.order_history (
+            id SERIAL PRIMARY KEY,
+            order_id VARCHAR(50) NOT NULL REFERENCES {self.schema_name}.orders(order_id),
+            status VARCHAR(20) NOT NULL,
+            changed_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            details JSONB,
+
+            -- Constraints
+            CONSTRAINT order_history_status_valid CHECK (status IN ('PENDING', 'SUBMITTED', 'OPEN', 'PARTIALLY_FILLED', 'FILLED', 'CANCELLED', 'REJECTED', 'EXPIRED'))
+        );
+
+        -- Add comment
+        COMMENT ON TABLE {self.schema_name}.order_history IS 'Order state change history for audit and debugging';
+        """
+
+        cm = self.connection_manager
+        assert cm is not None
+        await cm.postgres.execute(create_table_sql)
+        logger.debug("Created order_history table")
+
     async def _create_indexes(self) -> None:
         """Create optimized indexes for trading queries."""
 
@@ -261,6 +364,19 @@ class DatabaseSchema:
             f"CREATE INDEX IF NOT EXISTS idx_data_quality_symbol ON {self.schema_name}.data_quality_metrics (symbol)",
             f"CREATE INDEX IF NOT EXISTS idx_data_quality_type ON {self.schema_name}.data_quality_metrics (metric_type)",
             f"CREATE INDEX IF NOT EXISTS idx_data_quality_alert ON {self.schema_name}.data_quality_metrics (alert_level) WHERE alert_level IN ('warning', 'error', 'critical')",
+            # Orders indexes
+            f"CREATE INDEX IF NOT EXISTS idx_orders_symbol ON {self.schema_name}.orders (symbol)",
+            f"CREATE INDEX IF NOT EXISTS idx_orders_status ON {self.schema_name}.orders (status)",
+            f"CREATE INDEX IF NOT EXISTS idx_orders_created_at ON {self.schema_name}.orders (created_at DESC)",
+            f"CREATE INDEX IF NOT EXISTS idx_orders_exchange_id ON {self.schema_name}.orders (exchange_order_id)",
+            f"CREATE INDEX IF NOT EXISTS idx_orders_symbol_status ON {self.schema_name}.orders (symbol, status)",
+            # Positions indexes
+            f"CREATE INDEX IF NOT EXISTS idx_positions_symbol ON {self.schema_name}.positions (symbol)",
+            f"CREATE INDEX IF NOT EXISTS idx_positions_side ON {self.schema_name}.positions (side) WHERE side != 'FLAT'",
+            f"CREATE INDEX IF NOT EXISTS idx_positions_updated_at ON {self.schema_name}.positions (updated_at DESC)",
+            # Order history indexes
+            f"CREATE INDEX IF NOT EXISTS idx_order_history_order_id ON {self.schema_name}.order_history (order_id)",
+            f"CREATE INDEX IF NOT EXISTS idx_order_history_changed_at ON {self.schema_name}.order_history (changed_at DESC)",
         ]
 
         cm = self.connection_manager
@@ -292,6 +408,8 @@ class DatabaseSchema:
         triggers = [
             f"CREATE TRIGGER update_current_prices_updated_at BEFORE UPDATE ON {self.schema_name}.current_prices FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()",
             f"CREATE TRIGGER update_trading_sessions_updated_at BEFORE UPDATE ON {self.schema_name}.trading_sessions FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()",
+            f"CREATE TRIGGER update_orders_updated_at BEFORE UPDATE ON {self.schema_name}.orders FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()",
+            f"CREATE TRIGGER update_positions_updated_at BEFORE UPDATE ON {self.schema_name}.positions FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()",
         ]
 
         for trigger_sql in triggers:
@@ -345,6 +463,9 @@ class DatabaseSchema:
             DatabaseConstants.TABLE_OHLCV_1D,
             DatabaseConstants.TABLE_TRADING_SESSIONS,
             DatabaseConstants.TABLE_DATA_QUALITY_METRICS,
+            DatabaseConstants.TABLE_ORDERS,
+            DatabaseConstants.TABLE_POSITIONS,
+            DatabaseConstants.TABLE_ORDER_HISTORY,
         }
 
         try:
