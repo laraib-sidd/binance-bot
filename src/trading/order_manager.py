@@ -15,7 +15,7 @@ This module handles:
 
 from decimal import Decimal
 import logging
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 
 from src.api.binance_client import BinanceClient
 from src.core.config import TradingConfig
@@ -116,64 +116,32 @@ class OrderManager:
         try:
             exchange_info = await self._client.get_exchange_info()
 
-            for symbol_data in exchange_info.get("symbols", []):
-                symbol = symbol_data.get("symbol", "")
-
+            # ExchangeInfo.symbols is Dict[str, SymbolInfo]
+            for symbol, api_symbol_info in exchange_info.symbols.items():
                 # Only load info for configured trading pairs
                 if symbol not in self._config.default_trading_pairs:
                     continue
 
-                symbol_info = self._parse_symbol_info(symbol_data)
+                # Convert API SymbolInfo to validator SymbolInfo
+                symbol_info = SymbolInfo(
+                    symbol=api_symbol_info.symbol,
+                    base_asset=api_symbol_info.base_asset,
+                    quote_asset=api_symbol_info.quote_asset,
+                    base_precision=api_symbol_info.base_precision,
+                    quote_precision=api_symbol_info.quote_precision,
+                    min_quantity=api_symbol_info.min_qty,
+                    max_quantity=api_symbol_info.max_qty,
+                    step_size=api_symbol_info.step_size,
+                    min_price=api_symbol_info.min_price,
+                    max_price=api_symbol_info.max_price,
+                    tick_size=api_symbol_info.tick_size,
+                    min_notional=api_symbol_info.min_notional,
+                )
                 self._symbol_info[symbol] = symbol_info
                 self._validator.set_symbol_info(symbol, symbol_info)
 
         except Exception as e:
             logger.warning("Failed to load symbol info: %s", e)
-
-    def _parse_symbol_info(self, data: dict) -> SymbolInfo:
-        """Parse symbol info from exchange API response."""
-        symbol = data.get("symbol", "")
-        base_asset = data.get("baseAsset", "")
-        quote_asset = data.get("quoteAsset", "")
-
-        # Extract filter values
-        min_quantity = Decimal("0.00001")
-        max_quantity = Decimal("9999999")
-        step_size = Decimal("0.00001")
-        min_price = Decimal("0.01")
-        max_price = Decimal("9999999")
-        tick_size = Decimal("0.01")
-        min_notional = Decimal("10")
-
-        for filter_data in data.get("filters", []):
-            filter_type = filter_data.get("filterType", "")
-
-            if filter_type == "LOT_SIZE":
-                min_quantity = Decimal(filter_data.get("minQty", "0.00001"))
-                max_quantity = Decimal(filter_data.get("maxQty", "9999999"))
-                step_size = Decimal(filter_data.get("stepSize", "0.00001"))
-
-            elif filter_type == "PRICE_FILTER":
-                min_price = Decimal(filter_data.get("minPrice", "0.01"))
-                max_price = Decimal(filter_data.get("maxPrice", "9999999"))
-                tick_size = Decimal(filter_data.get("tickSize", "0.01"))
-
-            elif filter_type == "NOTIONAL" or filter_type == "MIN_NOTIONAL":
-                min_notional = Decimal(filter_data.get("minNotional", "10"))
-
-        return SymbolInfo(
-            symbol=symbol,
-            base_asset=base_asset,
-            quote_asset=quote_asset,
-            is_trading=data.get("status") == "TRADING",
-            min_quantity=min_quantity,
-            max_quantity=max_quantity,
-            step_size=step_size,
-            min_price=min_price,
-            max_price=max_price,
-            tick_size=tick_size,
-            min_notional=min_notional,
-        )
 
     async def place_order(
         self,
@@ -271,9 +239,9 @@ class OrderManager:
 
         return order
 
-    async def _submit_order_to_exchange(self, order: Order) -> dict:
+    async def _submit_order_to_exchange(self, order: Order) -> Dict[str, Any]:
         """Submit order to Binance API."""
-        params = {
+        params: Dict[str, str] = {
             "symbol": order.symbol,
             "side": order.side.value,
             "type": order.order_type.value,
@@ -285,9 +253,7 @@ class OrderManager:
             params["price"] = str(order.price)
             params["timeInForce"] = order.time_in_force
 
-        # Use the client's test order endpoint if on testnet
-        # For actual implementation, this would call client.create_order()
-        # Currently returning a mock response structure
+        # Submit order to exchange
         response = await self._client._make_request(
             "POST",
             "/api/v3/order",
@@ -295,7 +261,7 @@ class OrderManager:
             signed=True,
         )
 
-        return response
+        return cast(Dict[str, Any], response)
 
     def _process_exchange_response(self, order: Order, response: dict) -> None:
         """Process exchange order response and update order status."""
@@ -541,12 +507,8 @@ class OrderManager:
                     else:
                         asset = symbol[:3]  # Guess first 3 chars
 
-            # Find balance for asset
-            for balance in account_info.get("balances", []):
-                if balance.get("asset") == asset:
-                    return Decimal(str(balance.get("free", "0")))
-
-            return Decimal("0")
+            # AccountInfo.balances is Dict[str, Decimal] with asset as key
+            return account_info.balances.get(asset, Decimal("0"))
 
         except Exception as e:
             logger.warning("Failed to get account balance: %s", e)
@@ -556,7 +518,8 @@ class OrderManager:
         """Get current market price for a symbol."""
         try:
             ticker = await self._client.get_ticker_price(symbol)
-            return Decimal(str(ticker.get("price", "0")))
+            # TickerData.price is already a Decimal
+            return ticker.price
         except Exception as e:
             logger.warning("Failed to get current price for %s: %s", symbol, e)
             return Decimal("0")

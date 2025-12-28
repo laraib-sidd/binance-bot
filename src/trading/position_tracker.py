@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 import json
 import logging
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from .order_models import Order, OrderSide, Position, PositionSide
 
@@ -33,7 +33,7 @@ class PositionTracker:
     All monetary calculations use Decimal for precision.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize PositionTracker."""
         # Active positions: symbol -> Position
         self._positions: Dict[str, Position] = {}
@@ -61,7 +61,8 @@ class PositionTracker:
     def total_unrealized_pnl(self) -> Decimal:
         """Calculate total unrealized P&L across all positions."""
         return sum(
-            pos.unrealized_pnl for pos in self._positions.values() if not pos.is_flat
+            (pos.unrealized_pnl for pos in self._positions.values() if not pos.is_flat),
+            Decimal("0"),
         )
 
     @property
@@ -375,7 +376,7 @@ class PositionTrackerWithRedis(PositionTracker):
     REDIS_KEY_PREFIX = "helios:positions"
     REDIS_PORTFOLIO_KEY = "helios:portfolio"
 
-    def __init__(self, redis_manager=None):
+    def __init__(self, redis_manager: Optional[Any] = None) -> None:
         """
         Initialize with optional Redis manager.
 

@@ -97,25 +97,21 @@ class Order:
 
     def __post_init__(self) -> None:
         """Validate order after initialization."""
-        # Ensure quantity is Decimal
-        if not isinstance(self.quantity, Decimal):
-            self.quantity = Decimal(str(self.quantity))
-
-        # Ensure price is Decimal if provided
-        if self.price is not None and not isinstance(self.price, Decimal):
-            self.price = Decimal(str(self.price))
-
-        # Ensure stop_price is Decimal if provided
-        if self.stop_price is not None and not isinstance(self.stop_price, Decimal):
-            self.stop_price = Decimal(str(self.stop_price))
-
-        # Ensure filled_quantity is Decimal
-        if not isinstance(self.filled_quantity, Decimal):
-            self.filled_quantity = Decimal(str(self.filled_quantity))
-
-        # Ensure commission is Decimal
-        if not isinstance(self.commission, Decimal):
-            self.commission = Decimal(str(self.commission))
+        # Ensure all monetary values are Decimal (runtime conversion for external data)
+        # These assignments handle cases where values come from JSON/API as non-Decimal
+        object.__setattr__(self, "quantity", Decimal(str(self.quantity)))
+        object.__setattr__(
+            self,
+            "price",
+            Decimal(str(self.price)) if self.price is not None else None,
+        )
+        object.__setattr__(
+            self,
+            "stop_price",
+            Decimal(str(self.stop_price)) if self.stop_price is not None else None,
+        )
+        object.__setattr__(self, "filled_quantity", Decimal(str(self.filled_quantity)))
+        object.__setattr__(self, "commission", Decimal(str(self.commission)))
 
     @property
     def remaining_quantity(self) -> Decimal:
@@ -277,21 +273,19 @@ class Position:
     total_commission: Decimal = field(default_factory=lambda: Decimal("0"))
 
     def __post_init__(self) -> None:
-        """Ensure all monetary values are Decimal."""
-        if not isinstance(self.quantity, Decimal):
-            self.quantity = Decimal(str(self.quantity))
-        if not isinstance(self.entry_price, Decimal):
-            self.entry_price = Decimal(str(self.entry_price))
-        if not isinstance(self.current_price, Decimal):
-            self.current_price = Decimal(str(self.current_price))
-        if not isinstance(self.realized_pnl, Decimal):
-            self.realized_pnl = Decimal(str(self.realized_pnl))
-        if not isinstance(self.total_commission, Decimal):
-            self.total_commission = Decimal(str(self.total_commission))
+        """Ensure all monetary values are Decimal (runtime conversion for external data)."""
+        # Convert all monetary values (handles JSON/API data coming as non-Decimal)
+        object.__setattr__(self, "quantity", Decimal(str(self.quantity)))
+        object.__setattr__(self, "entry_price", Decimal(str(self.entry_price)))
+        object.__setattr__(self, "current_price", Decimal(str(self.current_price)))
+        object.__setattr__(self, "realized_pnl", Decimal(str(self.realized_pnl)))
+        object.__setattr__(
+            self, "total_commission", Decimal(str(self.total_commission))
+        )
 
         # Initialize current_price to entry_price if not set
         if self.current_price == Decimal("0"):
-            self.current_price = self.entry_price
+            object.__setattr__(self, "current_price", self.entry_price)
 
     @property
     def is_flat(self) -> bool:
@@ -348,9 +342,8 @@ class Position:
 
     def update_price(self, price: Decimal) -> None:
         """Update current market price."""
-        if not isinstance(price, Decimal):
-            price = Decimal(str(price))
-        self.current_price = price
+        # Convert to Decimal for runtime safety (API data may be non-Decimal)
+        self.current_price = Decimal(str(price))
         self.updated_at = datetime.now(timezone.utc)
 
     def add_to_position(
@@ -367,10 +360,9 @@ class Position:
             price: Price of the addition
             commission: Commission for this trade
         """
-        if not isinstance(quantity, Decimal):
-            quantity = Decimal(str(quantity))
-        if not isinstance(price, Decimal):
-            price = Decimal(str(price))
+        # Convert to Decimal for runtime safety (API data may be non-Decimal)
+        quantity = Decimal(str(quantity))
+        price = Decimal(str(price))
 
         # Calculate new average entry price
         total_quantity = self.quantity + quantity
@@ -400,10 +392,9 @@ class Position:
         Returns:
             Realized P&L from this reduction
         """
-        if not isinstance(quantity, Decimal):
-            quantity = Decimal(str(quantity))
-        if not isinstance(price, Decimal):
-            price = Decimal(str(price))
+        # Convert to Decimal for runtime safety (API data may be non-Decimal)
+        quantity = Decimal(str(quantity))
+        price = Decimal(str(price))
 
         # Calculate realized P&L for this portion
         price_diff = price - self.entry_price

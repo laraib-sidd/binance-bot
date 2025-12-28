@@ -5,11 +5,18 @@ Unit tests for OrderManager with mocked BinanceClient.
 Tests cover order placement, cancellation, and status tracking.
 """
 
+from datetime import datetime, timezone
 from decimal import Decimal
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from src.api.models import (
+    AccountInfo,
+    ExchangeInfo,
+    SymbolInfo as APISymbolInfo,
+    TickerData,
+)
 from src.core.config import TradingConfig
 from src.trading.exceptions import (
     OrderExecutionError,
@@ -19,6 +26,62 @@ from src.trading.exceptions import (
 from src.trading.order_manager import OrderManager
 from src.trading.order_models import OrderSide, OrderStatus, OrderType
 from src.trading.order_validator import SymbolInfo
+
+
+def create_mock_account_info(balances: dict[str, str]) -> AccountInfo:
+    """Helper to create a mock AccountInfo dataclass."""
+    return AccountInfo(
+        account_type="SPOT",
+        can_trade=True,
+        can_withdraw=True,
+        can_deposit=True,
+        update_time=datetime.now(timezone.utc),
+        total_wallet_balance=Decimal("10000"),
+        total_unrealized_pnl=Decimal("0"),
+        balances={k: Decimal(v) for k, v in balances.items()},
+    )
+
+
+def create_mock_ticker_data(symbol: str, price: str) -> TickerData:
+    """Helper to create a mock TickerData dataclass."""
+    return TickerData(
+        symbol=symbol,
+        price=Decimal(price),
+        bid_price=Decimal(price),
+        ask_price=Decimal(price),
+        volume_24h=Decimal("1000000"),
+        price_change_24h=Decimal("100"),
+        price_change_percent_24h=Decimal("0.2"),
+        high_24h=Decimal(price),
+        low_24h=Decimal(price),
+        timestamp=datetime.now(timezone.utc),
+    )
+
+
+def create_mock_exchange_info(symbols: list[dict]) -> ExchangeInfo:
+    """Helper to create a mock ExchangeInfo dataclass."""
+    api_symbols = {}
+    for sym_data in symbols:
+        api_sym = APISymbolInfo(
+            symbol=sym_data["symbol"],
+            status=sym_data.get("status", "TRADING"),
+            base_asset=sym_data["baseAsset"],
+            quote_asset=sym_data["quoteAsset"],
+            base_precision=8,
+            quote_precision=8,
+            min_qty=Decimal(sym_data.get("minQty", "0.00001")),
+            max_qty=Decimal(sym_data.get("maxQty", "1000")),
+            step_size=Decimal(sym_data.get("stepSize", "0.00001")),
+            min_price=Decimal(sym_data.get("minPrice", "0.01")),
+            max_price=Decimal(sym_data.get("maxPrice", "1000000")),
+            tick_size=Decimal(sym_data.get("tickSize", "0.01")),
+            min_notional=Decimal(sym_data.get("minNotional", "10")),
+        )
+        api_symbols[api_sym.symbol] = api_sym
+    return ExchangeInfo(
+        server_time=datetime.now(timezone.utc),
+        symbols=api_symbols,
+    )
 
 
 @pytest.fixture
@@ -82,34 +145,23 @@ class TestOrderManagerInitialization:
         mock_config: TradingConfig,
     ) -> None:
         """Test that initialization loads symbol info from exchange."""
-        mock_client.get_exchange_info.return_value = {
-            "symbols": [
+        mock_client.get_exchange_info.return_value = create_mock_exchange_info(
+            [
                 {
                     "symbol": "BTCUSDT",
                     "baseAsset": "BTC",
                     "quoteAsset": "USDT",
                     "status": "TRADING",
-                    "filters": [
-                        {
-                            "filterType": "LOT_SIZE",
-                            "minQty": "0.00001",
-                            "maxQty": "1000",
-                            "stepSize": "0.00001",
-                        },
-                        {
-                            "filterType": "PRICE_FILTER",
-                            "minPrice": "0.01",
-                            "maxPrice": "1000000",
-                            "tickSize": "0.01",
-                        },
-                        {
-                            "filterType": "NOTIONAL",
-                            "minNotional": "10",
-                        },
-                    ],
+                    "minQty": "0.00001",
+                    "maxQty": "1000",
+                    "stepSize": "0.00001",
+                    "minPrice": "0.01",
+                    "maxPrice": "1000000",
+                    "tickSize": "0.01",
+                    "minNotional": "10",
                 }
             ]
-        }
+        )
 
         manager = OrderManager(client=mock_client, config=mock_config)
         await manager.initialize()
@@ -128,10 +180,10 @@ class TestOrderPlacement:
         mock_client: MagicMock,
     ) -> None:
         """Test successful limit buy order placement."""
-        # Mock account balance
-        mock_client.get_account_info.return_value = {
-            "balances": [{"asset": "USDT", "free": "10000"}]
-        }
+        # Mock account balance (USDT for buying BTC)
+        mock_client.get_account_info.return_value = create_mock_account_info(
+            {"USDT": "10000"}
+        )
 
         # Mock order submission response
         mock_client._make_request.return_value = {
@@ -161,13 +213,15 @@ class TestOrderPlacement:
         mock_client: MagicMock,
     ) -> None:
         """Test successful market sell order placement."""
-        # Mock account balance
-        mock_client.get_account_info.return_value = {
-            "balances": [{"asset": "BTC", "free": "1.0"}]
-        }
+        # Mock account balance (BTC for selling)
+        mock_client.get_account_info.return_value = create_mock_account_info(
+            {"BTC": "1.0"}
+        )
 
         # Mock current price
-        mock_client.get_ticker_price.return_value = {"price": "50000"}
+        mock_client.get_ticker_price.return_value = create_mock_ticker_data(
+            "BTCUSDT", "50000"
+        )
 
         # Mock order submission - immediately filled
         mock_client._make_request.return_value = {
@@ -195,9 +249,9 @@ class TestOrderPlacement:
     ) -> None:
         """Test order rejection due to insufficient balance."""
         # Mock low balance
-        mock_client.get_account_info.return_value = {
-            "balances": [{"asset": "USDT", "free": "10"}]
-        }
+        mock_client.get_account_info.return_value = create_mock_account_info(
+            {"USDT": "10"}
+        )
 
         with pytest.raises(OrderValidationError) as exc_info:
             await order_manager.place_order(
@@ -218,9 +272,9 @@ class TestOrderPlacement:
     ) -> None:
         """Test order failure due to exchange error."""
         # Mock sufficient balance
-        mock_client.get_account_info.return_value = {
-            "balances": [{"asset": "USDT", "free": "100000"}]
-        }
+        mock_client.get_account_info.return_value = create_mock_account_info(
+            {"USDT": "100000"}
+        )
 
         # Mock exchange error
         mock_client._make_request.side_effect = Exception("Exchange error")
@@ -246,9 +300,9 @@ class TestOrderCancellation:
     ) -> None:
         """Test successful order cancellation."""
         # Place an order first
-        mock_client.get_account_info.return_value = {
-            "balances": [{"asset": "USDT", "free": "100000"}]
-        }
+        mock_client.get_account_info.return_value = create_mock_account_info(
+            {"USDT": "100000"}
+        )
         mock_client._make_request.return_value = {
             "orderId": "12345",
             "status": "NEW",
@@ -290,9 +344,9 @@ class TestOrderRetrieval:
     ) -> None:
         """Test retrieving an order by ID."""
         # Place an order
-        mock_client.get_account_info.return_value = {
-            "balances": [{"asset": "USDT", "free": "100000"}]
-        }
+        mock_client.get_account_info.return_value = create_mock_account_info(
+            {"USDT": "100000"}
+        )
         mock_client._make_request.return_value = {
             "orderId": "12345",
             "status": "NEW",
@@ -327,9 +381,9 @@ class TestOrderRetrieval:
         mock_client: MagicMock,
     ) -> None:
         """Test retrieving all open orders."""
-        mock_client.get_account_info.return_value = {
-            "balances": [{"asset": "USDT", "free": "100000"}]
-        }
+        mock_client.get_account_info.return_value = create_mock_account_info(
+            {"USDT": "100000"}
+        )
         mock_client._make_request.return_value = {
             "orderId": "12345",
             "status": "NEW",
@@ -368,9 +422,9 @@ class TestOrderRetrieval:
         mock_client: MagicMock,
     ) -> None:
         """Test filtering open orders by symbol."""
-        mock_client.get_account_info.return_value = {
-            "balances": [{"asset": "USDT", "free": "100000"}]
-        }
+        mock_client.get_account_info.return_value = create_mock_account_info(
+            {"USDT": "100000"}
+        )
         mock_client._make_request.return_value = {
             "orderId": "12345",
             "status": "NEW",
@@ -402,9 +456,9 @@ class TestOrderStatusSync:
         mock_client: MagicMock,
     ) -> None:
         """Test synchronizing order status with exchange."""
-        mock_client.get_account_info.return_value = {
-            "balances": [{"asset": "USDT", "free": "100000"}]
-        }
+        mock_client.get_account_info.return_value = create_mock_account_info(
+            {"USDT": "100000"}
+        )
         mock_client._make_request.return_value = {
             "orderId": "12345",
             "status": "NEW",
@@ -441,9 +495,9 @@ class TestCancelAllOrders:
         mock_client: MagicMock,
     ) -> None:
         """Test cancelling all open orders."""
-        mock_client.get_account_info.return_value = {
-            "balances": [{"asset": "USDT", "free": "100000"}]
-        }
+        mock_client.get_account_info.return_value = create_mock_account_info(
+            {"USDT": "100000"}
+        )
         mock_client._make_request.return_value = {
             "orderId": "12345",
             "status": "NEW",
