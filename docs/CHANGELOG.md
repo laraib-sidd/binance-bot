@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - Current Development
 
+### 📦 Phase 3 - Grid Trading Engine (2025-12-28)
+
+#### Added
+- **Grid Models** (`src/trading/grid_models.py`):
+  - `GridConfig`, `GridLevel`, `GridSession` dataclasses
+  - Status tracking: PENDING → ACTIVE → COMPLETED/STOPPED/EXPIRED
+  - Full P&L calculation per level and session
+
+- **Grid Calculator** (`src/trading/grid_calculator.py`):
+  - ATR-based dynamic grid range calculation
+  - Volatility-adaptive spacing and capital allocation
+  - Stop-loss and take-profit level computation
+
+- **Grid Manager** (`src/trading/grid_manager.py`):
+  - Session creation and order ladder deployment
+  - Automatic fill handling with profit-taking orders
+  - Session monitoring (stop-loss, take-profit, expiration)
+
+- **Unit Tests**: 57 new tests for grid components
+- **API Documentation**: `docs/api/GRID_TRADING.md`
+
+---
+
 ### 📦 Phase 2 - Order Management System (2025-06-28)
 
 #### Added
